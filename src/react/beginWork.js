@@ -37,9 +37,6 @@ export function updateHostComponent(current, workInProgress, renderExpirationTim
   var isDirectTextChild = shouldSetTextContent(type, nextProps)
 
   if (isDirectTextChild) {
-  if (isDirectTextChild) {
-  if (isDirectTextChild) {
-  if (isDirectTextChild) {
     nextChildren = null
   } else if (prevProps !== null && shouldSetTextContent(type, prevProps)) {
     workInProgress.effectTag |= ContentReset
