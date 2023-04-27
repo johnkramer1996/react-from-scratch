@@ -30,6 +30,12 @@ const div = React.createElement(
   React.createElement('h1', {}, 'h1'),
   React.createElement('h2', {}, 'h2'),
   React.createElement('h3', {}, 'h3'),
+  React.createElement('h1', {}, 'h1'),
+  React.createElement('h2', {}, 'h2'),
+  React.createElement('h3', {}, 'h3'),
+  React.createElement('h1', {}, 'h1'),
+  React.createElement('h2', {}, 'h2'),
+  React.createElement('h3', {}, 'h3'),
 )
 
 try {
