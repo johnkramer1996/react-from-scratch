@@ -130,7 +130,6 @@ export function completeWork(current, workInProgress, renderExpirationTime) {
 
     case HostText: {
       var newText = newProps
-      debugger
 
       if (current !== null && workInProgress.stateNode != null) {
         var oldText = current.memoizedProps
