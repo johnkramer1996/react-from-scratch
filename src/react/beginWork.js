@@ -1,4 +1,5 @@
 import { reconcileChildren } from './reconcileChildren'
+import { renderWithHooks } from './renderWithHooks'
 
 /**
  * beginWork
@@ -10,6 +11,17 @@ import { reconcileChildren } from './reconcileChildren'
  */
 export function beginWork(current, workInProgress) {
   switch (workInProgress.tag) {
+    case IndeterminateComponent: {
+      return mountIndeterminateComponent(current, workInProgress, workInProgress.type)
+    }
+    case FunctionComponent: {
+      return updateFunctionComponent(
+        current,
+        workInProgress,
+        workInProgress.type,
+        workInProgress.pendingProps,
+      )
+    }
     case HostRoot:
       return updateHostRoot(current, workInProgress)
     case HostComponent:
@@ -18,6 +30,19 @@ export function beginWork(current, workInProgress) {
       return updateHostText(current, workInProgress)
   }
   return null
+}
+
+export function mountIndeterminateComponent(current, workInProgress, Component) {
+  workInProgress.tag = FunctionComponent
+  return updateFunctionComponent(current, workInProgress, Component, workInProgress.pendingProps)
+}
+
+export function updateFunctionComponent(current, workInProgress, Component, nextProps) {
+  const nextChildren = renderWithHooks(current, workInProgress, Component, nextProps, null)
+
+  workInProgress.effectTag |= PerformedWork
+  reconcileChildren(current, workInProgress, nextChildren)
+  return workInProgress.child
 }
 
 export function updateHostComponent(current, workInProgress) {
