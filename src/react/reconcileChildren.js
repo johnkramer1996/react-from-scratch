@@ -1,5 +1,5 @@
 import { REACT_ELEMENT_TYPE } from './React'
-import { createFiberFromElement, createFiberFromText } from './fiber'
+import { createFiberFromElement, createFiberFromText, createWorkInProgress } from './fiber'
 
 /**
  * reconcileChildFibers
@@ -22,10 +22,11 @@ import { createFiberFromElement, createFiberFromText } from './fiber'
 var reconcileChildFibers = ChildReconciler(true)
 var mountChildFibers = ChildReconciler(false)
 export function reconcileChildren(current, workInProgress, nextChildren) {
-  return (workInProgress.child =
+  var child =
     current === null
       ? mountChildFibers(workInProgress, null, nextChildren)
-      : reconcileChildFibers(workInProgress, current.child, nextChildren))
+      : reconcileChildFibers(workInProgress, current.child, nextChildren)
+  return (workInProgress.child = child)
 }
 
 export function ChildReconciler(shouldTrackSideEffects) {
@@ -239,7 +240,7 @@ export function ChildReconciler(shouldTrackSideEffects) {
       return lastPlacedIndex
     }
     // ! 1-2-"3" => 1-"3"-2
-    return oldIndex
+    return current.index
   }
 
   function placeSingleChild(newFiber) {

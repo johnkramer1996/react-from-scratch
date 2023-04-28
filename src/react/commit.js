@@ -112,6 +112,38 @@ function commitPlacement(finishedWork) {
   appendPlacementNode(finishedWork, parent, appendChild)
 }
 
+function commitWork(current, finishedWork) {
+  switch (finishedWork.tag) {
+    case HostComponent: {
+      var instance = finishedWork.stateNode
+
+      if (instance != null) {
+        var newProps = finishedWork.memoizedProps
+        var oldProps = current !== null ? current.memoizedProps : newProps
+        var type = finishedWork.type
+        var updatePayload = finishedWork.updateQueue
+        finishedWork.updateQueue = null
+
+        if (updatePayload !== null) {
+          commitUpdate(instance, updatePayload, type, oldProps, newProps)
+        }
+      }
+
+      return
+    }
+
+    case HostText: {
+      var textInstance = finishedWork.stateNode
+      var newText = finishedWork.memoizedProps
+      commitTextUpdate(textInstance, newText)
+      return
+    }
+
+    case HostRoot:
+      return
+  }
+}
+
 function appendPlacementNode(node, parent, append) {
   var tag = node.tag
   var isHost = tag === HostComponent || tag === HostText
@@ -145,4 +177,8 @@ function getHostParentFiber(fiber) {
 
 function isHostParent(fiber) {
   return fiber.tag === HostComponent || fiber.tag === HostRoot
+}
+
+function commitTextUpdate(textInstance, newText) {
+  textInstance.nodeValue = newText
 }

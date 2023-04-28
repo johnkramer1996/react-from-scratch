@@ -1,3 +1,4 @@
+import { createWorkInProgress } from './fiber'
 import { reconcileChildren } from './reconcileChildren'
 import { renderWithHooks } from './renderWithHooks'
 

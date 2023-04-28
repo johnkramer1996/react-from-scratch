@@ -20,6 +20,7 @@ export function scheduleUpdateOnFiber(fiber) {
 
 export function performSyncWorkOnRoot(root) {
   if (root !== workInProgressRoot) prepareFreshStack(root)
+
   if (workInProgress !== null) {
     workLoopSync()
     root.finishedWork = root.current.alternate
@@ -54,6 +55,7 @@ export function finishSyncRender(root) {
 export function getRoot(fiber) {
   var node = fiber.return
   var root = null
+  var alternate = fiber.alternate
 
   if (node === null && fiber.tag === HostRoot) root = fiber.stateNode
   else {
