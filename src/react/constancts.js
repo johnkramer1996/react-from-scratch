@@ -94,15 +94,6 @@ window.executionContext = NoContext
 
 window.workInProgressRoot = null
 window.workInProgress = null
-window.renderExpirationTime$1 = NoWork
-
-window.workInProgressRootExitStatus = RootIncomplete
-window.workInProgressRootFatalError = null
-window.workInProgressRootLatestProcessedExpirationTime = Sync
-window.workInProgressRootLatestSuspenseTimeout = Sync
-window.workInProgressRootCanSuspendUsingConfig = null
-window.workInProgressRootNextUnprocessedUpdateTime = NoWork
-window.workInProgressRootHasPendingPing = false
 
 window.globalMostRecentFallbackTime = 0
 window.FALLBACK_THROTTLE_MS = 500

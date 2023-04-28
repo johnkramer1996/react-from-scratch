@@ -1,55 +1,57 @@
 import { reconcileChildren } from './reconcileChildren'
-import { cloneUpdateQueue, processUpdateQueue } from './update'
 
-export function beginWork(current, workInProgress, renderExpirationTime) {
-  if (current !== null) {
-    var oldProps = current.memoizedProps
-    var newProps = workInProgress.pendingProps
-
-    if (oldProps !== newProps || workInProgress.type !== current.type);
-    else if (workInProgress.expirationTime < renderExpirationTime) {
-      return bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime)
-    }
-  }
-  workInProgress.expirationTime = NoWork
+/**
+ * beginWork
+ * updateHostComponent
+ * updateHostText
+ * updateHostRoot
+ * bailoutOnAlreadyFinishedWork
+ * cloneChildFibers
+ */
+export function beginWork(current, workInProgress) {
   switch (workInProgress.tag) {
     case HostRoot:
-      return updateHostRoot(current, workInProgress, renderExpirationTime)
+      return updateHostRoot(current, workInProgress)
     case HostComponent:
-      return updateHostComponent(current, workInProgress, renderExpirationTime)
+      return updateHostComponent(current, workInProgress)
     case HostText:
-      return updateHostText(current, workInProgress, renderExpirationTime)
+      return updateHostText(current, workInProgress)
   }
   return null
 }
 
-export function updateHostComponent(current, workInProgress, renderExpirationTime) {
-  var nextProps = workInProgress.pendingProps
-  var nextChildren = nextProps.children
-  reconcileChildren(current, workInProgress, nextChildren, renderExpirationTime)
-  return workInProgress.child
+export function updateHostComponent(current, workInProgress) {
+  var nextChildren = workInProgress.pendingProps.children
+  return reconcileChildren(current, workInProgress, nextChildren)
 }
 
 export function updateHostText(current, workInProgress) {
   return null
 }
 
-export function updateHostRoot(current, workInProgress, renderExpirationTime) {
-  var nextProps = workInProgress.pendingProps
-  var prevState = workInProgress.memoizedState
-  cloneUpdateQueue(current, workInProgress)
-  processUpdateQueue(workInProgress, nextProps, null, renderExpirationTime)
+export function updateHostRoot(current, workInProgress) {
+  var nextChildren = workInProgress.pendingProps.children
+  return reconcileChildren(current, workInProgress, nextChildren)
+}
 
-  var nextState = workInProgress.memoizedState
-
-  var nextChildren = nextState.element
-  bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime)
-  reconcileChildren(current, workInProgress, nextChildren)
+export function bailoutOnAlreadyFinishedWork(current, workInProgress) {
+  cloneChildFibers(current, workInProgress)
   return workInProgress.child
 }
 
-export function bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime) {
-  if (workInProgress.childExpirationTime < renderExpirationTime) return null
-  cloneChildFibers(current, workInProgress)
-  return workInProgress.child
+export function cloneChildFibers(current, workInProgress) {
+  if (workInProgress.child === null) return
+
+  var currentChild = workInProgress.child
+  var newChild = createWorkInProgress(currentChild, currentChild.pendingProps)
+  workInProgress.child = newChild
+  newChild.return = workInProgress
+
+  while (currentChild.sibling !== null) {
+    currentChild = currentChild.sibling
+    newChild = newChild.sibling = createWorkInProgress(currentChild, currentChild.pendingProps)
+    newChild.return = workInProgress
+  }
+
+  newChild.sibling = null
 }

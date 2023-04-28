@@ -3,16 +3,11 @@ import { createElement } from './react/React'
 import { render } from './react/ReactDom'
 
 const React = {
-  createElement: createElement,
-  render: render,
+  createElement,
+  render,
 }
 
 const container = document.getElementById('root')
-
-export const App = () => {
-  const a = 1
-  return React.createElement('h1', {}, 123)
-}
 
 const div = React.createElement(
   'div',
@@ -30,7 +25,6 @@ const div = React.createElement(
 )
 
 try {
-  //React.render(React.createElement(App), container)
   React.render(div, container)
 } catch (e) {
   console.log({ e })
