@@ -35,8 +35,6 @@ export function ensureRootIsScheduled(root, reset = false) {
     return
   }
   if (root.callbackNode !== null) return
-
-  // ! для чего и вызивается этот метод в scheduleWork
   root.callbackNode = scheduleSyncCallback(performSyncWorkOnRoot.bind(null, root))
 }
 

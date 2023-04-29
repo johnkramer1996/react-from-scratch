@@ -18,8 +18,26 @@ export function renderWithHooks(current, workInProgress, Component, props, secon
 }
 
 const HooksDispatcherOnMountInDEV = {
+  useCallback: function (callback, deps) {
+    return mountCallback(callback, deps)
+  },
+  useContext: function (context, observedBits) {
+    return readContext(context, observedBits)
+  },
   useEffect: function (create, deps) {
     return mountEffect(create, deps)
+  },
+  useLayoutEffect: function (create, deps) {
+    return mountLayoutEffect(create, deps)
+  },
+  useMemo: function (create, deps) {
+    return mountMemo(create, deps)
+  },
+  useReducer: function (reducer, initialArg, init) {
+    return mountReducer(reducer, initialArg, init)
+  },
+  useRef: function (initialValue) {
+    return mountRef(initialValue)
   },
   useState: function (initialState) {
     return mountState(initialState)
@@ -27,8 +45,26 @@ const HooksDispatcherOnMountInDEV = {
 }
 
 const HooksDispatcherOnUpdateInDEV = {
+  useCallback: function (callback, deps) {
+    return updateCallback(callback, deps)
+  },
+  useContext: function (context, observedBits) {
+    return readContext(context, observedBits)
+  },
   useEffect: function (create, deps) {
     return updateEffect(create, deps)
+  },
+  useLayoutEffect: function (create, deps) {
+    return updateLayoutEffect(create, deps)
+  },
+  useMemo: function (create, deps) {
+    return updateMemo(create, deps)
+  },
+  useReducer: function (reducer, initialArg, init) {
+    return updateReducer(reducer, initialArg, init)
+  },
+  useRef: function (initialValue) {
+    return updateRef()
   },
   useState: function (initialState) {
     return updateState(initialState)
@@ -40,6 +76,81 @@ function resolveDispatcher() {
   return dispatcher
 }
 
+export function mountCallback(callback, deps) {
+  var hook = mountWorkInProgressHook()
+  var nextDeps = deps === undefined ? null : deps
+  hook.memoizedState = [callback, nextDeps]
+  return callback
+}
+
+export function updateCallback(callback, deps) {
+  var hook = updateWorkInProgressHook()
+  var nextDeps = deps === undefined ? null : deps
+  var prevState = hook.memoizedState
+
+  if (prevState !== null) {
+    if (nextDeps !== null) {
+      var prevDeps = prevState[1]
+
+      if (areHookInputsEqual(nextDeps, prevDeps)) {
+        return prevState[0]
+      }
+    }
+  }
+
+  hook.memoizedState = [callback, nextDeps]
+  return callback
+}
+
+export function mountMemo(nextCreate, deps) {
+  var hook = mountWorkInProgressHook()
+  var nextDeps = deps === undefined ? null : deps
+  var nextValue = nextCreate()
+  hook.memoizedState = [nextValue, nextDeps]
+  return nextValue
+}
+
+export function updateMemo(nextCreate, deps) {
+  var hook = updateWorkInProgressHook()
+  var nextDeps = deps === undefined ? null : deps
+  var prevState = hook.memoizedState
+
+  if (prevState !== null) {
+    if (nextDeps !== null) {
+      var prevDeps = prevState[1]
+
+      if (areHookInputsEqual(nextDeps, prevDeps)) return prevState[0]
+    }
+  }
+
+  var nextValue = nextCreate()
+  hook.memoizedState = [nextValue, nextDeps]
+  return nextValue
+}
+
+export function mountRef(initialValue) {
+  var hook = mountWorkInProgressHook()
+  var ref = {
+    current: initialValue,
+  }
+  Object.seal(ref)
+  hook.memoizedState = ref
+  return ref
+}
+
+export function updateRef(initialValue) {
+  var hook = updateWorkInProgressHook()
+  return hook.memoizedState
+}
+
+export function mountLayoutEffect(create, deps) {
+  return mountEffectImpl(Update, Layout, create, deps)
+}
+
+export function updateLayoutEffect(create, deps) {
+  return updateEffectImpl(Update, Layout, create, deps)
+}
+
 export function mountEffect(create, deps) {
   return mountEffectImpl(Update | Passive, Passive$1, create, deps)
 }
@@ -48,14 +159,14 @@ export function updateEffect(create, deps) {
   return updateEffectImpl(Update | Passive, Passive$1, create, deps)
 }
 
-export function mountEffectImpl(fiberEffectTag, hookEffectTag, create, deps) {
+function mountEffectImpl(fiberEffectTag, hookEffectTag, create, deps) {
   var hook = mountWorkInProgressHook()
   var nextDeps = deps === undefined ? null : deps
   currentlyRenderingFiber$1.effectTag |= fiberEffectTag
   hook.memoizedState = pushEffect(HasEffect | hookEffectTag, create, undefined, nextDeps)
 }
 
-export function updateEffectImpl(fiberEffectTag, hookEffectTag, create, deps) {
+function updateEffectImpl(fiberEffectTag, hookEffectTag, create, deps) {
   var hook = updateWorkInProgressHook()
   var nextDeps = deps === undefined ? null : deps
   var destroy = undefined
@@ -129,7 +240,6 @@ function updateReducer(reducer, initialArg, init) {
         newBaseQueueLast = newBaseQueueLast.next = _clone
       }
 
-      // ! если уже было вычисленно
       newState =
         update.eagerReducer === reducer ? update.eagerState : reducer(newState, update.action)
 
@@ -167,14 +277,37 @@ function updateState(initialState) {
   return updateReducer(basicStateReducer)
 }
 
+export function useContext(Context, unstable_observedBits) {
+  var dispatcher = resolveDispatcher()
+  return dispatcher.useContext(Context, unstable_observedBits)
+}
+export function useState(initialState) {
+  var dispatcher = resolveDispatcher()
+  return dispatcher.useState(initialState)
+}
+export function useReducer(reducer, initialArg, init) {
+  var dispatcher = resolveDispatcher()
+  return dispatcher.useReducer(reducer, initialArg, init)
+}
+export function useRef(initialValue) {
+  var dispatcher = resolveDispatcher()
+  return dispatcher.useRef(initialValue)
+}
 export function useEffect(create, deps) {
   var dispatcher = resolveDispatcher()
   return dispatcher.useEffect(create, deps)
 }
-
-export function useState(initialState) {
+export function useLayoutEffect(create, deps) {
   var dispatcher = resolveDispatcher()
-  return dispatcher.useState(initialState)
+  return dispatcher.useLayoutEffect(create, deps)
+}
+export function useCallback(callback, deps) {
+  var dispatcher = resolveDispatcher()
+  return dispatcher.useCallback(callback, deps)
+}
+export function useMemo(create, deps) {
+  var dispatcher = resolveDispatcher()
+  return dispatcher.useMemo(create, deps)
 }
 
 function mountWorkInProgressHook() {
@@ -235,8 +368,8 @@ function basicStateReducer(state, action) {
 function dispatchAction(fiber, queue, action) {
   var update = {
     action,
-    eagerReducer: null, // ! для предотвращение рендера если ничего не изменилось
-    eagerState: null, // ! для предотвращение рендера если ничего не изменилось
+    eagerReducer: null,
+    eagerState: null,
     next: null,
   }
   update.priority = ImmediatePriority
@@ -250,19 +383,19 @@ function dispatchAction(fiber, queue, action) {
   }
   queue.pending = update
 
-  var lastRenderedReducer = queue.lastRenderedReducer
-  if (lastRenderedReducer !== null) {
-    var currentState = queue.lastRenderedState
-    var eagerState = lastRenderedReducer(currentState, action)
-    update.eagerReducer = lastRenderedReducer
-    update.eagerState = eagerState
-    if (Object.is(eagerState, currentState)) return
-  }
+  //var lastRenderedReducer = queue.lastRenderedReducer
+  //if (lastRenderedReducer !== null) {
+  //  var currentState = queue.lastRenderedState
+  //  var eagerState = lastRenderedReducer(currentState, action)
+  //  update.eagerReducer = lastRenderedReducer
+  //  update.eagerState = eagerState
+  //  if (Object.is(eagerState, currentState)) return
+  //}
 
   scheduleUpdateOnFiber(fiber)
 }
 
-export function pushEffect(tag, create, destroy, deps) {
+function pushEffect(tag, create, destroy, deps) {
   var effect = {
     tag,
     create,
@@ -292,9 +425,8 @@ export function pushEffect(tag, create, destroy, deps) {
   return effect
 }
 
-export function areHookInputsEqual(nextDeps, prevDeps) {
+function areHookInputsEqual(nextDeps, prevDeps) {
   if (prevDeps === null) return false
-
   for (var i = 0; i < prevDeps.length && i < nextDeps.length; i++) {
     if (Object.is(nextDeps[i], prevDeps[i])) continue
     return false
