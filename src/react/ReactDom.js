@@ -1,5 +1,5 @@
 import { createFiberRoot } from './fiber'
-import { scheduleUpdateOnFiber } from './scheduleUpdateOnFiber'
+import { flushSyncCallbackQueue, scheduleUpdateOnFiber } from './scheduleUpdateOnFiber'
 
 /**
  * render
@@ -13,7 +13,18 @@ export function render(children, container) {
 }
 
 export function unbatchedUpdates(fn) {
-  return fn()
+  var prevExecutionContext = executionContext
+
+  executionContext &= ~BatchedContext
+  executionContext |= LegacyUnbatchedContext
+
+  try {
+    return fn()
+  } finally {
+    executionContext = prevExecutionContext
+
+    if (executionContext === NoContext) flushSyncCallbackQueue()
+  }
 }
 
 export function updateContainer(children, fiberRootNode) {

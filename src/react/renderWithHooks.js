@@ -18,12 +18,18 @@ export function renderWithHooks(current, workInProgress, Component, props, secon
 }
 
 const HooksDispatcherOnMountInDEV = {
+  useEffect: function (create, deps) {
+    return mountEffect(create, deps)
+  },
   useState: function (initialState) {
     return mountState(initialState)
   },
 }
 
 const HooksDispatcherOnUpdateInDEV = {
+  useEffect: function (create, deps) {
+    return updateEffect(create, deps)
+  },
   useState: function (initialState) {
     return updateState(initialState)
   },
@@ -32,6 +38,42 @@ const HooksDispatcherOnUpdateInDEV = {
 function resolveDispatcher() {
   var dispatcher = ReactCurrentDispatcher.current
   return dispatcher
+}
+
+export function mountEffect(create, deps) {
+  return mountEffectImpl(Update | Passive, Passive$1, create, deps)
+}
+
+export function updateEffect(create, deps) {
+  return updateEffectImpl(Update | Passive, Passive$1, create, deps)
+}
+
+export function mountEffectImpl(fiberEffectTag, hookEffectTag, create, deps) {
+  var hook = mountWorkInProgressHook()
+  var nextDeps = deps === undefined ? null : deps
+  currentlyRenderingFiber$1.effectTag |= fiberEffectTag
+  hook.memoizedState = pushEffect(HasEffect | hookEffectTag, create, undefined, nextDeps)
+}
+
+export function updateEffectImpl(fiberEffectTag, hookEffectTag, create, deps) {
+  var hook = updateWorkInProgressHook()
+  var nextDeps = deps === undefined ? null : deps
+  var destroy = undefined
+
+  if (currentHook !== null) {
+    var prevEffect = currentHook.memoizedState
+    destroy = prevEffect.destroy
+
+    if (nextDeps !== null) {
+      if (areHookInputsEqual(nextDeps, prevEffect.deps)) {
+        pushEffect(hookEffectTag, create, destroy, nextDeps)
+        return
+      }
+    }
+  }
+
+  currentlyRenderingFiber$1.effectTag |= fiberEffectTag
+  hook.memoizedState = pushEffect(HasEffect | hookEffectTag, create, destroy, nextDeps)
 }
 
 function mountReducer(reducer, initialArg, init) {
@@ -125,6 +167,11 @@ function updateState(initialState) {
   return updateReducer(basicStateReducer)
 }
 
+export function useEffect(create, deps) {
+  var dispatcher = resolveDispatcher()
+  return dispatcher.useEffect(create, deps)
+}
+
 export function useState(initialState) {
   var dispatcher = resolveDispatcher()
   return dispatcher.useState(initialState)
@@ -213,4 +260,44 @@ function dispatchAction(fiber, queue, action) {
   }
 
   scheduleUpdateOnFiber(fiber)
+}
+
+export function pushEffect(tag, create, destroy, deps) {
+  var effect = {
+    tag,
+    create,
+    destroy,
+    deps,
+    next: null,
+  }
+  var componentUpdateQueue = currentlyRenderingFiber$1.updateQueue
+
+  if (componentUpdateQueue === null) {
+    componentUpdateQueue = { lastEffect: null }
+    currentlyRenderingFiber$1.updateQueue = componentUpdateQueue
+    componentUpdateQueue.lastEffect = effect.next = effect
+  } else {
+    var lastEffect = componentUpdateQueue.lastEffect
+
+    if (lastEffect === null) {
+      componentUpdateQueue.lastEffect = effect.next = effect
+    } else {
+      var firstEffect = lastEffect.next
+      lastEffect.next = effect
+      effect.next = firstEffect
+      componentUpdateQueue.lastEffect = effect
+    }
+  }
+
+  return effect
+}
+
+export function areHookInputsEqual(nextDeps, prevDeps) {
+  if (prevDeps === null) return false
+
+  for (var i = 0; i < prevDeps.length && i < nextDeps.length; i++) {
+    if (Object.is(nextDeps[i], prevDeps[i])) continue
+    return false
+  }
+  return true
 }

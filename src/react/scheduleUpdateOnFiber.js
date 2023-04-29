@@ -15,14 +15,39 @@ import { createWorkInProgress } from './fiber'
 
 export function scheduleUpdateOnFiber(fiber) {
   var root = getRoot(fiber)
-  performSyncWorkOnRoot(root)
+  if (
+    (executionContext & LegacyUnbatchedContext) !== NoContext &&
+    (executionContext & (RenderContext | CommitContext)) === NoContext
+  ) {
+    performSyncWorkOnRoot(root)
+  } else {
+    ensureRootIsScheduled(root)
+    if (executionContext === NoContext) {
+      flushSyncCallbackQueue()
+    }
+  }
+}
+
+export function ensureRootIsScheduled(root, reset = false) {
+  if (reset) {
+    root.callbackNode = null
+
+    return
+  }
+  if (root.callbackNode !== null) return
+
+  // ! для чего и вызивается этот метод в scheduleWork
+  root.callbackNode = scheduleSyncCallback(performSyncWorkOnRoot.bind(null, root))
 }
 
 export function performSyncWorkOnRoot(root) {
   if (root !== workInProgressRoot) prepareFreshStack(root)
 
   if (workInProgress !== null) {
+    var prevExecutionContext = executionContext
+    executionContext |= RenderContext
     workLoopSync()
+    executionContext = prevExecutionContext
     root.finishedWork = root.current.alternate
     finishSyncRender(root)
   }
@@ -70,4 +95,34 @@ export function getRoot(fiber) {
   }
 
   return root
+}
+
+export function scheduleSyncCallback(callback) {
+  if (syncQueue === null) {
+    syncQueue = [callback]
+  } else {
+    syncQueue.push(callback)
+  }
+  return fakeCallbackNode
+}
+
+export function flushSyncCallbackQueue() {
+  if (!isFlushingSyncQueue && syncQueue !== null) {
+    isFlushingSyncQueue = true
+
+    try {
+      var _isSync = true
+      var queue = syncQueue
+      for (var i = 0; i < queue.length; i++) {
+        var callback = queue[i]
+
+        do {
+          callback = callback(_isSync)
+        } while (callback !== null)
+      }
+      syncQueue = null
+    } finally {
+      isFlushingSyncQueue = false
+    }
+  }
 }
