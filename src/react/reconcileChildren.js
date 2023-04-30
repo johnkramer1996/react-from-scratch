@@ -244,6 +244,7 @@ export function ChildReconciler(shouldTrackSideEffects) {
   }
 
   function placeSingleChild(newFiber) {
+    // ! первый ребенок рута ставиться на размещение
     if (shouldTrackSideEffects && newFiber.alternate === null) newFiber.effectTag = Placement
     return newFiber
   }

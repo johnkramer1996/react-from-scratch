@@ -54,12 +54,17 @@ export function createFiberFromText(content, mode) {
   return new FiberNode(HostText, content, null, mode)
 }
 
-export function createFiberFromElement({ type, key, props }, mode) {
-  return createFiberFromTypeAndProps(type, key, props, mode)
+export function createFiberFromElement(element, mode) {
+  var type = element.type
+  var key = element.key
+  var pendingProps = element.props
+
+  return createFiberFromTypeAndProps(type, key, pendingProps, mode)
 }
 
 export function createFiberFromTypeAndProps(type, key, props, mode) {
   var fiberTag = IndeterminateComponent
+
   if (typeof type === 'string') fiberTag = HostComponent
   var fiber = new FiberNode(fiberTag, props, key, mode)
   fiber.type = type

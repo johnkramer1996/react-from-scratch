@@ -23,6 +23,7 @@ export function completeUnitOfWork(workInProgress) {
     if (next !== null) return next
 
     if (returnFiber !== null) {
+      // !добавить еффекты файбера в очередь
       if (returnFiber.firstEffect === null) returnFiber.firstEffect = workInProgress.firstEffect
       if (workInProgress.lastEffect !== null) {
         if (returnFiber.lastEffect !== null) {
@@ -31,10 +32,12 @@ export function completeUnitOfWork(workInProgress) {
         returnFiber.lastEffect = workInProgress.lastEffect
       }
 
+      // !добавить текущий файбер в очередь
       if (workInProgress.effectTag > PerformedWork) {
         if (returnFiber.lastEffect !== null) returnFiber.lastEffect.nextEffect = workInProgress
+        // ! если нет последнего то и первого
+        // ! последний добавиляеться по умолчанию
         else returnFiber.firstEffect = workInProgress
-
         returnFiber.lastEffect = workInProgress
       }
     }

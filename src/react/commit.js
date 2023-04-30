@@ -15,7 +15,6 @@ export function commitRoot(root) {
 
   root.finishedWork = null
   root.callbackNode = null
-  root.nextKnownPendingLevel = NoWork
 
   if (root === workInProgressRoot) {
     workInProgressRoot = null
@@ -23,15 +22,18 @@ export function commitRoot(root) {
   }
 
   var firstEffect
-
+  // ! если в рута есть еффекты то добавить
   if (finishedWork.effectTag > PerformedWork) {
+    // ! если есль другие еффекты добавить в конец
     if (finishedWork.lastEffect !== null) {
       finishedWork.lastEffect.nextEffect = finishedWork
       firstEffect = finishedWork.firstEffect
     } else {
+      // ! если других нет то рут - эдинственный эффект
       firstEffect = finishedWork
     }
   } else {
+    // ! если в рута нет эффектов то пропускаем рут
     firstEffect = finishedWork.firstEffect
   }
 
@@ -57,7 +59,6 @@ export function commitRoot(root) {
     rootDoesHavePassiveEffects = false
     rootWithPendingPassiveEffects = root
   } else {
-    // ! Remove nextEffect pointer to assist GC (иначе будут сброшены в flushPassiveEffects)
     nextEffect = firstEffect
 
     while (nextEffect !== null) {
@@ -196,7 +197,6 @@ function unmountHostComponents(current) {
   while (true) {
     if (!currentParentIsValid) {
       var parent = node.return
-      //eslint-disable-next-line
       findParent: while (true) {
         var parentStateNode = parent.stateNode
 
@@ -244,7 +244,6 @@ function detachFiber(current) {
   current.child = null
   current.memoizedState = null
   current.updateQueue = null
-  current.dependencies = null
   current.alternate = null
   current.firstEffect = null
   current.lastEffect = null

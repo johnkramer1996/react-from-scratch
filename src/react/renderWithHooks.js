@@ -17,6 +17,80 @@ export function renderWithHooks(current, workInProgress, Component, props, secon
   return children
 }
 
+export function useContext(Context, unstable_observedBits) {
+  var dispatcher = resolveDispatcher()
+  return dispatcher.useContext(Context, unstable_observedBits)
+}
+export function useState(initialState) {
+  var dispatcher = resolveDispatcher()
+  return dispatcher.useState(initialState)
+}
+export function useReducer(reducer, initialArg, init) {
+  var dispatcher = resolveDispatcher()
+  return dispatcher.useReducer(reducer, initialArg, init)
+}
+export function useRef(initialValue) {
+  var dispatcher = resolveDispatcher()
+  return dispatcher.useRef(initialValue)
+}
+export function useEffect(create, deps) {
+  var dispatcher = resolveDispatcher()
+  return dispatcher.useEffect(create, deps)
+}
+export function useLayoutEffect(create, deps) {
+  var dispatcher = resolveDispatcher()
+  return dispatcher.useLayoutEffect(create, deps)
+}
+export function useCallback(callback, deps) {
+  var dispatcher = resolveDispatcher()
+  return dispatcher.useCallback(callback, deps)
+}
+export function useMemo(create, deps) {
+  var dispatcher = resolveDispatcher()
+  return dispatcher.useMemo(create, deps)
+}
+
+function mountWorkInProgressHook() {
+  var hook = { memoizedState: null, baseState: null, baseQueue: null, queue: null, next: null }
+
+  if (workInProgressHook === null)
+    currentlyRenderingFiber$1.memoizedState = workInProgressHook = hook
+  else workInProgressHook = workInProgressHook.next = hook
+
+  return workInProgressHook
+}
+
+function updateWorkInProgressHook() {
+  var current = currentlyRenderingFiber$1.alternate
+  var nextCurrentHook = currentHook?.next || current?.memoizedState || null
+
+  var nextWorkInProgressHook
+
+  if (workInProgressHook === null) {
+    nextWorkInProgressHook = currentlyRenderingFiber$1.memoizedState
+  } else {
+    nextWorkInProgressHook = workInProgressHook.next
+  }
+
+  currentHook = nextCurrentHook
+  if (nextWorkInProgressHook === null) {
+    // ! first update
+    var newHook = {
+      memoizedState: currentHook.memoizedState,
+      baseState: currentHook.baseState,
+      baseQueue: currentHook.baseQueue,
+      queue: currentHook.queue,
+      next: null,
+    }
+
+    if (workInProgressHook === null)
+      currentlyRenderingFiber$1.memoizedState = workInProgressHook = newHook
+    else workInProgressHook = workInProgressHook.next = newHook
+  } else workInProgressHook = nextWorkInProgressHook
+
+  return workInProgressHook
+}
+
 const HooksDispatcherOnMountInDEV = {
   useCallback: function (callback, deps) {
     return mountCallback(callback, deps)
@@ -91,10 +165,7 @@ export function updateCallback(callback, deps) {
   if (prevState !== null) {
     if (nextDeps !== null) {
       var prevDeps = prevState[1]
-
-      if (areHookInputsEqual(nextDeps, prevDeps)) {
-        return prevState[0]
-      }
+      if (areHookInputsEqual(nextDeps, prevDeps)) return prevState[0]
     }
   }
 
@@ -118,7 +189,6 @@ export function updateMemo(nextCreate, deps) {
   if (prevState !== null) {
     if (nextDeps !== null) {
       var prevDeps = prevState[1]
-
       if (areHookInputsEqual(nextDeps, prevDeps)) return prevState[0]
     }
   }
@@ -277,105 +347,14 @@ function updateState(initialState) {
   return updateReducer(basicStateReducer)
 }
 
-export function useContext(Context, unstable_observedBits) {
-  var dispatcher = resolveDispatcher()
-  return dispatcher.useContext(Context, unstable_observedBits)
-}
-export function useState(initialState) {
-  var dispatcher = resolveDispatcher()
-  return dispatcher.useState(initialState)
-}
-export function useReducer(reducer, initialArg, init) {
-  var dispatcher = resolveDispatcher()
-  return dispatcher.useReducer(reducer, initialArg, init)
-}
-export function useRef(initialValue) {
-  var dispatcher = resolveDispatcher()
-  return dispatcher.useRef(initialValue)
-}
-export function useEffect(create, deps) {
-  var dispatcher = resolveDispatcher()
-  return dispatcher.useEffect(create, deps)
-}
-export function useLayoutEffect(create, deps) {
-  var dispatcher = resolveDispatcher()
-  return dispatcher.useLayoutEffect(create, deps)
-}
-export function useCallback(callback, deps) {
-  var dispatcher = resolveDispatcher()
-  return dispatcher.useCallback(callback, deps)
-}
-export function useMemo(create, deps) {
-  var dispatcher = resolveDispatcher()
-  return dispatcher.useMemo(create, deps)
-}
-
-function mountWorkInProgressHook() {
-  var hook = {
-    memoizedState: null, // ! memoizedState useEffect(tag, create, destroy, deps, next}) useRef(ref), useReducer(state) useState(state)
-    baseState: null, // !
-    baseQueue: null, // ! baseState/baseQueue - для пропусков еффектов которые уже не нужны
-    queue: null, // ! queue - очередь экшенов
-    next: null, // ! next следующий хук
-  }
-
-  if (workInProgressHook === null)
-    currentlyRenderingFiber$1.memoizedState = workInProgressHook = hook
-  else workInProgressHook = workInProgressHook.next = hook
-
-  return workInProgressHook
-}
-
-function updateWorkInProgressHook() {
-  var nextCurrentHook
-
-  if (currentHook === null) {
-    var current = currentlyRenderingFiber$1.alternate
-    nextCurrentHook = current !== null ? current.memoizedState : null
-  } else {
-    nextCurrentHook = currentHook.next
-  }
-
-  var nextWorkInProgressHook =
-    workInProgressHook === null ? currentlyRenderingFiber$1.memoizedState : workInProgressHook.next
-
-  if (nextWorkInProgressHook !== null) {
-    workInProgressHook = nextWorkInProgressHook
-    nextWorkInProgressHook = workInProgressHook.next
-    currentHook = nextCurrentHook
-  } else {
-    currentHook = nextCurrentHook
-    var newHook = {
-      memoizedState: currentHook.memoizedState,
-      baseState: currentHook.baseState,
-      baseQueue: currentHook.baseQueue,
-      queue: currentHook.queue,
-      next: null,
-    }
-
-    if (workInProgressHook === null)
-      currentlyRenderingFiber$1.memoizedState = workInProgressHook = newHook
-    else workInProgressHook = workInProgressHook.next = newHook
-  }
-
-  return workInProgressHook
-}
-
 function basicStateReducer(state, action) {
   return typeof action === 'function' ? action(state) : action
 }
 
 function dispatchAction(fiber, queue, action) {
-  var update = {
-    action,
-    eagerReducer: null,
-    eagerState: null,
-    next: null,
-  }
-  update.priority = ImmediatePriority
+  var update = { action, eagerReducer: null, eagerState: null, next: null }
   var pending = queue.pending
 
-  // ! ставить update в связной список
   if (pending === null) update.next = update
   else {
     update.next = pending.next
@@ -396,13 +375,7 @@ function dispatchAction(fiber, queue, action) {
 }
 
 function pushEffect(tag, create, destroy, deps) {
-  var effect = {
-    tag,
-    create,
-    destroy,
-    deps,
-    next: null,
-  }
+  var effect = { tag, create, destroy, deps, next: null }
   var componentUpdateQueue = currentlyRenderingFiber$1.updateQueue
 
   if (componentUpdateQueue === null) {
@@ -412,9 +385,8 @@ function pushEffect(tag, create, destroy, deps) {
   } else {
     var lastEffect = componentUpdateQueue.lastEffect
 
-    if (lastEffect === null) {
-      componentUpdateQueue.lastEffect = effect.next = effect
-    } else {
+    if (lastEffect === null) componentUpdateQueue.lastEffect = effect.next = effect
+    else {
       var firstEffect = lastEffect.next
       lastEffect.next = effect
       effect.next = firstEffect

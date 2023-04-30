@@ -1,7 +1,7 @@
 import constancts from './react/constancts'
 import { App } from './App'
-import { createElement } from './react/React'
 import { render } from './react/ReactDom'
+import { createElement } from './react/React'
 
 const container = document.getElementById('root')
 
