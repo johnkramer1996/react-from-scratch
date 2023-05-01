@@ -7,19 +7,19 @@ import { flushSyncCallbackQueue, scheduleUpdateOnFiber } from './scheduleUpdateO
  * updateContainer
  */
 
-var rootContainerInstance = null
+const rootContainerInstance = { current: null }
 
 export function render(children, container) {
   var root = createFiberRoot(container)
-  rootContainerInstance = container
+  rootContainerInstance.current = container
   unbatchedUpdates(() => updateContainer(children, root))
 }
 
 export function getRootHostContainer() {
-  return rootContainerInstance
+  return rootContainerInstance.current
 }
 
-export function unbatchedUpdates(fn) {
+function unbatchedUpdates(fn) {
   var prevExecutionContext = executionContext
 
   executionContext &= ~BatchedContext
@@ -34,7 +34,7 @@ export function unbatchedUpdates(fn) {
   }
 }
 
-export function updateContainer(children, fiberRootNode) {
+function updateContainer(children, fiberRootNode) {
   var fiberNode = fiberRootNode.current
   fiberNode.pendingProps = { children }
   scheduleUpdateOnFiber(fiberNode)

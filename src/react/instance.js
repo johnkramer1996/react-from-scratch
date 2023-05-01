@@ -170,7 +170,7 @@ function diffProperties(domElement, tag, lastRawProps, nextRawProps, rootContain
   return updatePayload
 }
 
-export function updateProperties(domElement, updatePayload) {
+export function updateProperties(domElement, updatePayload, type, oldProps, newProps) {
   updateDOMProperties(domElement, updatePayload)
 }
 

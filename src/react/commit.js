@@ -7,18 +7,7 @@ import {
   updateFiberProps,
   updateProperties,
 } from './instance'
-import {
-  ensureRootIsScheduled,
-  flushPassiveEffects,
-  flushSyncCallbackQueue,
-} from './scheduleUpdateOnFiber'
-/**
- * commitRoot
- * commitMutationEffects
- * commitPlacement
- * appendPlacementNode
- * getHostParentFiber
- */
+import { ensureRootIsScheduled, flushSyncCallbackQueue } from './scheduleUpdateOnFiber'
 
 export function commitRoot(root) {
   var finishedWork = root.finishedWork
@@ -192,7 +181,7 @@ function commitWork(current, finishedWork) {
 
 function commitUpdate(domElement, updatePayload, type, oldProps, newProps) {
   updateFiberProps(domElement, newProps)
-  updateProperties(domElement, updatePayload)
+  updateProperties(domElement, updatePayload, type, oldProps, newProps)
 }
 
 function commitDeletion(current) {
@@ -287,7 +276,7 @@ function commitLifeCycles(current, finishedWork) {
   }
 }
 
-export function commitPassiveHookEffects(finishedWork) {
+function commitPassiveHookEffects(finishedWork) {
   if ((finishedWork.effectTag & Passive) !== NoEffect) {
     switch (finishedWork.tag) {
       case FunctionComponent:
@@ -339,6 +328,8 @@ function commitHookEffectListMount(tag, finishedWork) {
   }
 }
 
+function commitMount(domElement, type, newProps) {}
+
 function commitAttachRef(finishedWork) {
   var ref = finishedWork.ref
   if (ref == null) return
@@ -368,4 +359,29 @@ function commitTextUpdate(textInstance, newText) {
 
 function commitResetTextContent(current) {
   resetTextContent(current.stateNode)
+}
+
+function flushPassiveEffects() {
+  if (rootWithPendingPassiveEffects === null) return false
+
+  var root = rootWithPendingPassiveEffects
+  rootWithPendingPassiveEffects = null
+
+  var prevExecutionContext = executionContext
+  executionContext |= CommitContext
+
+  var _effect2 = root.current.firstEffect
+
+  while (_effect2 !== null) {
+    commitPassiveHookEffects(_effect2)
+
+    var nextNextEffect = _effect2.nextEffect
+
+    _effect2.nextEffect = null
+    _effect2 = nextNextEffect
+  }
+
+  executionContext = prevExecutionContext
+  flushSyncCallbackQueue()
+  return true
 }

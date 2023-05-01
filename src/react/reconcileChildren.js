@@ -25,11 +25,10 @@ import {
  */
 
 export function reconcileChildren(current, workInProgress, nextChildren) {
-  var child =
+  return (workInProgress.child =
     current === null
       ? mountChildFibers(workInProgress, null, nextChildren)
-      : reconcileChildFibers(workInProgress, current.child, nextChildren)
-  return (workInProgress.child = child)
+      : reconcileChildFibers(workInProgress, current.child, nextChildren))
 }
 
 var reconcileChildFibers = ChildReconciler(true)
