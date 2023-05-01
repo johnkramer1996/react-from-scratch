@@ -51,7 +51,7 @@ export function useMemo(create, deps) {
 }
 
 function mountWorkInProgressHook() {
-  var hook = { memoizedState: null, baseState: null, baseQueue: null, queue: null, next: null }
+  var hook = { memoizedState: null, queue: null, next: null }
 
   if (workInProgressHook === null)
     currentlyRenderingFiber$1.memoizedState = workInProgressHook = hook
@@ -74,11 +74,8 @@ function updateWorkInProgressHook() {
 
   currentHook = nextCurrentHook
   if (nextWorkInProgressHook === null) {
-    // ! first update
     var newHook = {
       memoizedState: currentHook.memoizedState,
-      baseState: currentHook.baseState,
-      baseQueue: currentHook.baseQueue,
       queue: currentHook.queue,
       next: null,
     }
@@ -86,7 +83,9 @@ function updateWorkInProgressHook() {
     if (workInProgressHook === null)
       currentlyRenderingFiber$1.memoizedState = workInProgressHook = newHook
     else workInProgressHook = workInProgressHook.next = newHook
-  } else workInProgressHook = nextWorkInProgressHook
+  } else {
+    workInProgressHook = nextWorkInProgressHook
+  }
 
   return workInProgressHook
 }
@@ -260,7 +259,7 @@ function updateEffectImpl(fiberEffectTag, hookEffectTag, create, deps) {
 function mountReducer(reducer, initialArg, init) {
   var hook = mountWorkInProgressHook()
   var initialState = init !== undefined ? init(initialArg) : initialArg
-  hook.memoizedState = hook.baseState = initialState
+  hook.memoizedState = initialState
   var queue = (hook.queue = {
     pending: null,
     dispatch: null,
@@ -273,10 +272,10 @@ function mountReducer(reducer, initialArg, init) {
 
 function updateReducer(reducer, initialArg, init) {
   var hook = updateWorkInProgressHook()
+  var current = currentHook
   var queue = hook.queue
   queue.lastRenderedReducer = reducer
-  var current = currentHook
-  var baseQueue = current.baseQueue
+  var baseQueue = null
   var pendingQueue = queue.pending
 
   if (pendingQueue !== null) {
@@ -287,41 +286,23 @@ function updateReducer(reducer, initialArg, init) {
       pendingQueue.next = baseFirst
     }
 
-    current.baseQueue = baseQueue = pendingQueue
+    baseQueue = pendingQueue
     queue.pending = null
   }
 
   if (baseQueue !== null) {
     var first = baseQueue.next
-    var newState = current.baseState
-    var newBaseState = null
-    var newBaseQueueFirst = null
-    var newBaseQueueLast = null
+    var newState = current.memoizedState
     var update = first
 
     do {
-      if (newBaseQueueLast !== null) {
-        var _clone = {
-          action: update.action,
-          eagerReducer: update.eagerReducer,
-          eagerState: update.eagerState,
-          next: null,
-        }
-        newBaseQueueLast = newBaseQueueLast.next = _clone
-      }
-
       newState =
         update.eagerReducer === reducer ? update.eagerState : reducer(newState, update.action)
 
       update = update.next
     } while (update !== null && update !== first)
 
-    if (newBaseQueueLast === null) newBaseState = newState
-    else newBaseQueueLast.next = newBaseQueueFirst
-
     hook.memoizedState = newState
-    hook.baseState = newBaseState
-    hook.baseQueue = newBaseQueueLast
     queue.lastRenderedState = newState
   }
 
@@ -332,7 +313,7 @@ function updateReducer(reducer, initialArg, init) {
 function mountState(initialState) {
   var hook = mountWorkInProgressHook()
   if (typeof initialState === 'function') initialState = initialState()
-  hook.memoizedState = hook.baseState = initialState
+  hook.memoizedState = initialState
   var queue = (hook.queue = {
     pending: null,
     dispatch: null,
@@ -370,7 +351,6 @@ function dispatchAction(fiber, queue, action) {
   //  update.eagerState = eagerState
   //  if (Object.is(eagerState, currentState)) return
   //}
-
   scheduleUpdateOnFiber(fiber)
 }
 

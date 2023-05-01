@@ -1,4 +1,4 @@
-import { appendChild } from './completeWork'
+import { appendChild, updateFiberProps } from './completeWork'
 import { ensureRootIsScheduled, flushSyncCallbackQueue } from './scheduleUpdateOnFiber'
 /**
  * commitRoot
@@ -136,24 +136,18 @@ function commitMutationEffects() {
 function commitPlacement(finishedWork) {
   var parentFiber = getHostParentFiber(finishedWork)
 
-  var parent
   var parentStateNode = parentFiber.stateNode
-
-  switch (parentFiber.tag) {
-    case HostComponent:
-      parent = parentStateNode
-      break
-
-    case HostRoot:
-      parent = parentStateNode.containerInfo
-      break
-  }
+  var parent = parentFiber.tag === HostRoot ? parentStateNode.containerInfo : parentStateNode
 
   appendPlacementNode(finishedWork, parent, appendChild)
 }
 
 function commitWork(current, finishedWork) {
   switch (finishedWork.tag) {
+    case FunctionComponent: {
+      commitHookEffectListUnmount(Layout | HasEffect, finishedWork)
+      return
+    }
     case HostComponent: {
       var instance = finishedWork.stateNode
 
@@ -181,6 +175,30 @@ function commitWork(current, finishedWork) {
 
     case HostRoot:
       return
+  }
+}
+
+function commitUpdate(domElement, updatePayload, type, oldProps, newProps) {
+  updateFiberProps(domElement, newProps)
+  updateProperties(domElement, updatePayload)
+}
+
+function updateProperties(domElement, updatePayload) {
+  updateDOMProperties(domElement, updatePayload)
+}
+
+function updateDOMProperties(domElement, updatePayload) {
+  for (var i = 0; i < updatePayload.length; i += 2) {
+    var propKey = updatePayload[i]
+    var propValue = updatePayload[i + 1]
+
+    if (propKey === STYLE) {
+      setValueForStyles(domElement, propValue)
+    } else if (propKey === CHILDREN) {
+      setTextContent(domElement, propValue)
+    } else {
+      setValueForProperty(domElement, propKey, propValue)
+    }
   }
 }
 
@@ -372,19 +390,17 @@ function appendPlacementNode(node, parent, append) {
   var isHost = tag === HostComponent || tag === HostText
 
   if (isHost) {
-    var stateNode = isHost ? node.stateNode : node.stateNode.instance
+    append(parent, node.stateNode)
+    return
+  }
+  var child = node.child
+  if (child !== null) {
+    appendPlacementNode(child, parent, append)
+    var sibling = child.sibling
 
-    append(parent, stateNode)
-  } else {
-    var child = node.child
-    if (child !== null) {
-      appendPlacementNode(child, parent, append)
-      var sibling = child.sibling
-
-      while (sibling !== null) {
-        appendPlacementNode(sibling, parent, append)
-        sibling = sibling.sibling
-      }
+    while (sibling !== null) {
+      appendPlacementNode(sibling, parent, append)
+      sibling = sibling.sibling
     }
   }
 }
@@ -435,7 +451,17 @@ export function getPublicInstance(instance) {
   return instance
 }
 
-function setTextContent(node, text) {
+export function setValueForStyles(node, styles) {
+  var style = node.style
+
+  for (var styleName in styles) {
+    if (!styles.hasOwnProperty(styleName)) continue
+
+    style[styleName] = styles[styleName]
+  }
+}
+
+export function setTextContent(node, text) {
   if (text) {
     var firstChild = node.firstChild
 
