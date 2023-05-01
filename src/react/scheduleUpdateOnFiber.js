@@ -36,7 +36,7 @@ export function ensureRootIsScheduled(root, reset = false) {
   root.callbackNode = scheduleSyncCallback(performSyncWorkOnRoot.bind(null, root))
 }
 
-export function performSyncWorkOnRoot(root) {
+function performSyncWorkOnRoot(root) {
   if (root !== workInProgressRoot) prepareFreshStack(root)
 
   if (workInProgress !== null) {
@@ -50,17 +50,17 @@ export function performSyncWorkOnRoot(root) {
   return null
 }
 
-export function prepareFreshStack(root) {
+function prepareFreshStack(root) {
   root.finishedWork = null
   workInProgressRoot = root
   workInProgress = createWorkInProgress(root.current, root.current.pendingProps)
 }
 
-export function workLoopSync() {
+function workLoopSync() {
   while (workInProgress !== null) workInProgress = performUnitOfWork(workInProgress)
 }
 
-export function performUnitOfWork(fiber) {
+function performUnitOfWork(fiber) {
   var current = fiber.alternate
   var next = beginWork(current, fiber)
   fiber.memoizedProps = fiber.pendingProps
@@ -68,12 +68,12 @@ export function performUnitOfWork(fiber) {
   return next
 }
 
-export function finishSyncRender(root) {
+function finishSyncRender(root) {
   workInProgressRoot = null
   commitRoot(root)
 }
 
-export function getRoot(fiber) {
+function getRoot(fiber) {
   var node = fiber.return
   var root = null
   var alternate = fiber.alternate
@@ -93,7 +93,7 @@ export function getRoot(fiber) {
   return root
 }
 
-export function scheduleSyncCallback(callback) {
+function scheduleSyncCallback(callback) {
   if (syncQueue === null) {
     syncQueue = [callback]
   } else {
