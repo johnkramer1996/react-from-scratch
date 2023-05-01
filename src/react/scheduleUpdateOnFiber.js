@@ -94,11 +94,7 @@ function getRoot(fiber) {
 }
 
 function scheduleSyncCallback(callback) {
-  if (syncQueue === null) {
-    syncQueue = [callback]
-  } else {
-    syncQueue.push(callback)
-  }
+  ;(syncQueue = syncQueue || []).push(callback)
   return fakeCallbackNode
 }
 
