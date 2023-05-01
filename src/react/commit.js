@@ -1,12 +1,23 @@
-import { appendChild, updateFiberProps } from './completeWork'
-import { ensureRootIsScheduled, flushSyncCallbackQueue } from './scheduleUpdateOnFiber'
+import { detachFiber } from './fiber'
+import {
+  appendChild,
+  appendPlacementNode,
+  getHostParentFiber,
+  removeChild,
+  updateFiberProps,
+  updateProperties,
+} from './instance'
+import {
+  ensureRootIsScheduled,
+  flushPassiveEffects,
+  flushSyncCallbackQueue,
+} from './scheduleUpdateOnFiber'
 /**
  * commitRoot
  * commitMutationEffects
  * commitPlacement
  * appendPlacementNode
  * getHostParentFiber
- * isHostParent
  */
 
 export function commitRoot(root) {
@@ -183,25 +194,6 @@ function commitUpdate(domElement, updatePayload, type, oldProps, newProps) {
   updateProperties(domElement, updatePayload)
 }
 
-function updateProperties(domElement, updatePayload) {
-  updateDOMProperties(domElement, updatePayload)
-}
-
-function updateDOMProperties(domElement, updatePayload) {
-  for (var i = 0; i < updatePayload.length; i += 2) {
-    var propKey = updatePayload[i]
-    var propValue = updatePayload[i + 1]
-
-    if (propKey === STYLE) {
-      setValueForStyles(domElement, propValue)
-    } else if (propKey === CHILDREN) {
-      setTextContent(domElement, propValue)
-    } else {
-      setValueForProperty(domElement, propKey, propValue)
-    }
-  }
-}
-
 function commitDeletion(current) {
   unmountHostComponents(current)
   detachFiber(current)
@@ -256,21 +248,6 @@ function unmountHostComponents(current) {
   }
 }
 
-function detachFiber(current) {
-  var alternate = current.alternate
-  current.return = null
-  current.child = null
-  current.memoizedState = null
-  current.updateQueue = null
-  current.alternate = null
-  current.firstEffect = null
-  current.lastEffect = null
-  current.pendingProps = null
-  current.memoizedProps = null
-  current.stateNode = null
-  if (alternate !== null) detachFiber(alternate)
-}
-
 function commitLayoutEffects() {
   while (nextEffect !== null) {
     var effectTag = nextEffect.effectTag
@@ -311,7 +288,7 @@ function commitLifeCycles(current, finishedWork) {
   }
 }
 
-function commitPassiveHookEffects(finishedWork) {
+export function commitPassiveHookEffects(finishedWork) {
   if ((finishedWork.effectTag & Passive) !== NoEffect) {
     switch (finishedWork.tag) {
       case FunctionComponent: {
@@ -385,98 +362,10 @@ function commitDetachRef(current) {
   else currentRef.current = null
 }
 
-function appendPlacementNode(node, parent, append) {
-  var tag = node.tag
-  var isHost = tag === HostComponent || tag === HostText
-
-  if (isHost) {
-    append(parent, node.stateNode)
-    return
-  }
-  var child = node.child
-  if (child !== null) {
-    appendPlacementNode(child, parent, append)
-    var sibling = child.sibling
-
-    while (sibling !== null) {
-      appendPlacementNode(sibling, parent, append)
-      sibling = sibling.sibling
-    }
-  }
-}
-
-function getHostParentFiber(fiber) {
-  var parent = fiber.return
-
-  while (parent !== null) {
-    if (isHostParent(parent)) return parent
-    parent = parent.return
-  }
-}
-
-function isHostParent(fiber) {
-  return fiber.tag === HostComponent || fiber.tag === HostRoot
-}
-
 function commitTextUpdate(textInstance, newText) {
   textInstance.nodeValue = newText
 }
 
-export function flushPassiveEffects() {
-  if (rootWithPendingPassiveEffects === null) return false
-
-  var root = rootWithPendingPassiveEffects
-  rootWithPendingPassiveEffects = null
-
-  var prevExecutionContext = executionContext
-  executionContext |= CommitContext
-
-  var _effect2 = root.current.firstEffect
-
-  while (_effect2 !== null) {
-    commitPassiveHookEffects(_effect2)
-
-    var nextNextEffect = _effect2.nextEffect
-
-    _effect2.nextEffect = null
-    _effect2 = nextNextEffect
-  }
-
-  executionContext = prevExecutionContext
-  flushSyncCallbackQueue()
-  return true
-}
-
-export function getPublicInstance(instance) {
-  return instance
-}
-
-export function setValueForStyles(node, styles) {
-  var style = node.style
-
-  for (var styleName in styles) {
-    if (!styles.hasOwnProperty(styleName)) continue
-
-    style[styleName] = styles[styleName]
-  }
-}
-
-export function setTextContent(node, text) {
-  if (text) {
-    var firstChild = node.firstChild
-
-    if (firstChild && firstChild === node.lastChild && firstChild.nodeType === TEXT_NODE) {
-      firstChild.nodeValue = text
-      return
-    }
-  }
-
-  node.textContent = text
-}
-export function resetTextContent(domElement) {
-  setTextContent(domElement, '')
-}
-
-export function commitResetTextContent(current) {
+function commitResetTextContent(current) {
   resetTextContent(current.stateNode)
 }

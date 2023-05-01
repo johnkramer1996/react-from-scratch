@@ -1,5 +1,5 @@
 import { beginWork } from './beginWork'
-import { commitRoot } from './commit'
+import { commitPassiveHookEffects, commitRoot } from './commit'
 import { completeUnitOfWork } from './completeWork'
 import { createWorkInProgress } from './fiber'
 
@@ -123,4 +123,29 @@ export function flushSyncCallbackQueue() {
       isFlushingSyncQueue = false
     }
   }
+}
+
+export function flushPassiveEffects() {
+  if (rootWithPendingPassiveEffects === null) return false
+
+  var root = rootWithPendingPassiveEffects
+  rootWithPendingPassiveEffects = null
+
+  var prevExecutionContext = executionContext
+  executionContext |= CommitContext
+
+  var _effect2 = root.current.firstEffect
+
+  while (_effect2 !== null) {
+    commitPassiveHookEffects(_effect2)
+
+    var nextNextEffect = _effect2.nextEffect
+
+    _effect2.nextEffect = null
+    _effect2 = nextNextEffect
+  }
+
+  executionContext = prevExecutionContext
+  flushSyncCallbackQueue()
+  return true
 }

@@ -71,6 +71,21 @@ export function createFiberFromTypeAndProps(type, key, props, mode) {
   return fiber
 }
 
+export function detachFiber(current) {
+  var alternate = current.alternate
+  current.return = null
+  current.child = null
+  current.memoizedState = null
+  current.updateQueue = null
+  current.alternate = null
+  current.firstEffect = null
+  current.lastEffect = null
+  current.pendingProps = null
+  current.memoizedProps = null
+  current.stateNode = null
+  if (alternate !== null) detachFiber(alternate)
+}
+
 function createFiber(tag, pendingProps, key, mode) {
   return new FiberNode(tag, pendingProps, key, mode)
 }
