@@ -15,7 +15,6 @@ import {
   finalizeInitialChildren,
   prepareUpdate,
 } from './instance'
-import { flushSyncCallbackQueue } from './scheduleUpdateOnFiber'
 
 export function completeUnitOfWork(workInProgress) {
   do {
@@ -55,6 +54,14 @@ export function completeUnitOfWork(workInProgress) {
 function completeWork(current, workInProgress) {
   var newProps = workInProgress.pendingProps
   switch (workInProgress.tag) {
+    case IndeterminateComponent:
+    case FunctionComponent:
+    case ForwardRef:
+    case Fragment:
+    case ClassComponent:
+    case HostRoot:
+      return null
+
     case HostComponent: {
       var rootContainerInstance = getRootHostContainer()
       var type = workInProgress.type

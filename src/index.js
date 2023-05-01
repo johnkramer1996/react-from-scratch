@@ -6,7 +6,7 @@ import { createElement } from './react/React'
 const container = document.getElementById('root')
 
 try {
-  render(createElement(App), container)
+  render(createElement(App, { ref: '123' }), container)
 } catch (e) {
   console.log({ e })
 }

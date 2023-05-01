@@ -1,7 +1,8 @@
-import { createElement } from './react/React'
+import { createElement, forwardRef } from './react/React'
 import { useEffect, useLayoutEffect, useReducer, useRef, useState } from './react/renderWithHooks'
 
-export const App = () => {
+export const App = forwardRef((props, ref) => {
+  console.log(ref)
   // const [state, setstate] = useState(1)
   const [stateReducer, dispatch] = useReducer((state, action) => action(state), 1)
 
@@ -10,8 +11,6 @@ export const App = () => {
 
   useEffect(() => {
     dispatch((s) => s + 1)
-    //dispatch((s) => s + 2)
-    //dispatch((s) => s + 3)
     console.log('message 1')
   }, [])
 
@@ -31,4 +30,4 @@ export const App = () => {
     1,
     1,
   )
-}
+})

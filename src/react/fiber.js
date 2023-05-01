@@ -10,6 +10,14 @@
  * FiberNode
  */
 
+import {
+  REACT_CONTEXT_TYPE,
+  REACT_FORWARD_REF_TYPE,
+  REACT_FRAGMENT_TYPE,
+  REACT_MEMO_TYPE,
+  REACT_PROVIDER_TYPE,
+} from './React'
+
 export function createFiberRoot(containerInfo) {
   var root = new FiberRootNode(containerInfo)
   var fiberNode = (root.current = createHostRootFiber())
@@ -65,7 +73,41 @@ export function createFiberFromElement(element, mode) {
 export function createFiberFromTypeAndProps(type, key, props, mode) {
   var fiberTag = IndeterminateComponent
 
-  if (typeof type === 'string') fiberTag = HostComponent
+  if (typeof type === 'function') {
+    if (shouldConstruct(type)) {
+      fiberTag = ClassComponent
+    } else;
+  } else if (typeof type === 'string') {
+    fiberTag = HostComponent
+  } else {
+    getTag: switch (type) {
+      case REACT_FRAGMENT_TYPE:
+        return createFiberFromFragment(pendingProps.children, mode, expirationTime, key)
+      default: {
+        if (typeof type === 'object' && type !== null) {
+          switch (type.$$typeof) {
+            case REACT_PROVIDER_TYPE:
+              fiberTag = ContextProvider
+              break getTag
+
+            case REACT_CONTEXT_TYPE:
+              // This is a consumer
+              fiberTag = ContextConsumer
+              break getTag
+
+            case REACT_FORWARD_REF_TYPE:
+              fiberTag = ForwardRef
+              break getTag
+
+            case REACT_MEMO_TYPE:
+              fiberTag = MemoComponent
+              break getTag
+          }
+        }
+      }
+    }
+  }
+
   var fiber = new FiberNode(fiberTag, props, key, mode)
   fiber.type = type
   return fiber
@@ -121,4 +163,9 @@ function FiberNode(tag, pendingProps, key, mode) {
   this.firstEffect = null // ! ссылка на начало
   this.lastEffect = null // ! ссылка на конец
   this.alternate = null
+}
+
+function shouldConstruct(Component) {
+  var prototype = Component.prototype
+  return !!(prototype && prototype.isReactComponent)
 }

@@ -23,6 +23,14 @@ export function beginWork(current, workInProgress) {
         workInProgress.pendingProps,
       )
     }
+    case ForwardRef: {
+      return updateForwardRef(
+        current,
+        workInProgress,
+        workInProgress.type,
+        workInProgress.pendingProps,
+      )
+    }
     case HostRoot:
       return updateHostRoot(current, workInProgress)
     case HostComponent:
@@ -43,6 +51,20 @@ export function updateFunctionComponent(current, workInProgress, Component, next
 
   workInProgress.effectTag |= PerformedWork
   reconcileChildren(current, workInProgress, nextChildren)
+  return workInProgress.child
+}
+
+export function updateForwardRef(current, workInProgress, Component, nextProps) {
+  const nextChildren = renderWithHooks(
+    current,
+    workInProgress,
+    Component.render,
+    nextProps,
+    workInProgress.ref,
+  )
+
+  workInProgress.effectTag |= PerformedWork
+  reconcileChildren(current, workInProgress, nextChildren, renderExpirationTime)
   return workInProgress.child
 }
 

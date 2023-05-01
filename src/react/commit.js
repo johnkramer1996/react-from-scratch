@@ -155,7 +155,8 @@ function commitPlacement(finishedWork) {
 
 function commitWork(current, finishedWork) {
   switch (finishedWork.tag) {
-    case FunctionComponent: {
+    case FunctionComponent:
+    case ForwardRef: {
       commitHookEffectListUnmount(Layout | HasEffect, finishedWork)
       return
     }
@@ -268,9 +269,7 @@ function commitLayoutEffects() {
 function commitLifeCycles(current, finishedWork) {
   switch (finishedWork.tag) {
     case FunctionComponent:
-    case ForwardRef:
-    case SimpleMemoComponent:
-    case Block: {
+    case ForwardRef: {
       commitHookEffectListMount(Layout | HasEffect, finishedWork)
       return
     }
@@ -291,7 +290,8 @@ function commitLifeCycles(current, finishedWork) {
 export function commitPassiveHookEffects(finishedWork) {
   if ((finishedWork.effectTag & Passive) !== NoEffect) {
     switch (finishedWork.tag) {
-      case FunctionComponent: {
+      case FunctionComponent:
+      case ForwardRef: {
         commitHookEffectListUnmount(Passive$1 | HasEffect, finishedWork)
         commitHookEffectListMount(Passive$1 | HasEffect, finishedWork)
         break
