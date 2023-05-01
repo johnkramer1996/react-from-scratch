@@ -1,4 +1,4 @@
-import { createElement, forwardRef } from './react/React'
+import { REACT_FRAGMENT_TYPE, createElement, forwardRef } from './react/React'
 import { useEffect, useLayoutEffect, useReducer, useRef, useState } from './react/renderWithHooks'
 
 export const App = forwardRef((props, ref) => {
@@ -28,6 +28,6 @@ export const App = forwardRef((props, ref) => {
     'h1',
     { onClick, style: { color: count.current === 1 ? 'red' : 'green' } },
     1,
-    1,
+    createElement(REACT_FRAGMENT_TYPE, {}, 123, 123),
   )
 })

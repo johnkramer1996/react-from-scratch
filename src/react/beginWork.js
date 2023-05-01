@@ -37,16 +37,18 @@ export function beginWork(current, workInProgress) {
       return updateHostComponent(current, workInProgress)
     case HostText:
       return updateHostText(current, workInProgress)
+    case Fragment:
+      return updateFragment(current, workInProgress)
   }
   return null
 }
 
-export function mountIndeterminateComponent(current, workInProgress, Component) {
+function mountIndeterminateComponent(current, workInProgress, Component) {
   workInProgress.tag = FunctionComponent
   return updateFunctionComponent(current, workInProgress, Component, workInProgress.pendingProps)
 }
 
-export function updateFunctionComponent(current, workInProgress, Component, nextProps) {
+function updateFunctionComponent(current, workInProgress, Component, nextProps) {
   const nextChildren = renderWithHooks(current, workInProgress, Component, nextProps, null)
 
   workInProgress.effectTag |= PerformedWork
@@ -54,7 +56,7 @@ export function updateFunctionComponent(current, workInProgress, Component, next
   return workInProgress.child
 }
 
-export function updateForwardRef(current, workInProgress, Component, nextProps) {
+function updateForwardRef(current, workInProgress, Component, nextProps) {
   const nextChildren = renderWithHooks(
     current,
     workInProgress,
@@ -64,13 +66,15 @@ export function updateForwardRef(current, workInProgress, Component, nextProps) 
   )
 
   workInProgress.effectTag |= PerformedWork
-  reconcileChildren(current, workInProgress, nextChildren, renderExpirationTime)
-  return workInProgress.child
+  return reconcileChildren(current, workInProgress, nextChildren)
+}
+
+function updateFragment(current, workInProgress) {
+  return reconcileChildren(current, workInProgress, workInProgress.pendingProps)
 }
 
 export function updateHostComponent(current, workInProgress) {
-  var nextChildren = workInProgress.pendingProps.children
-  return reconcileChildren(current, workInProgress, nextChildren)
+  return reconcileChildren(current, workInProgress, workInProgress.pendingProps.children)
 }
 
 export function updateHostText(current, workInProgress) {
@@ -83,8 +87,7 @@ export function updateHostRoot(current, workInProgress) {
 }
 
 export function bailoutOnAlreadyFinishedWork(current, workInProgress) {
-  cloneChildFibers(current, workInProgress)
-  return workInProgress.child
+  return cloneChildFibers(current, workInProgress)
 }
 
 export function cloneChildFibers(current, workInProgress) {
@@ -102,4 +105,6 @@ export function cloneChildFibers(current, workInProgress) {
   }
 
   newChild.sibling = null
+
+  return workInProgress.child
 }

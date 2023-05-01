@@ -1,4 +1,4 @@
-import { REACT_ELEMENT_TYPE } from './React'
+import { REACT_ELEMENT_TYPE, REACT_FRAGMENT_TYPE } from './React'
 import { createFiberFromElement, createFiberFromText, createWorkInProgress } from './fiber'
 
 /**
@@ -140,19 +140,47 @@ export function ChildReconciler(shouldTrackSideEffects) {
     var key = element.key
     var child = currentFirstChild
 
-    if (child === null) {
-      var _created4 = createFiberFromElement(element, returnFiber.mode)
-      _created4.ref = element.ref
-      _created4.return = returnFiber
-      return _created4
+    if (child !== null) {
+      if (child.key === key) {
+        switch (child.tag) {
+          case Fragment: {
+            if (element.type === REACT_FRAGMENT_TYPE) {
+              var existing = useFiber(child, element.props.children)
+              existing.return = returnFiber
+
+              return existing
+            }
+            break
+          }
+
+          default: {
+            if (child.type === element.type) {
+              var existing = useFiber(child, element.props)
+
+              existing.ref = element.ref
+              existing.return = returnFiber
+
+              return existing
+            }
+
+            break
+          }
+        }
+      } else {
+        deleteChild(returnFiber, child)
+      }
     }
-    if (child.key === key && child.type === element.type) {
-      var _existing3 = useFiber(child, element.props)
-      _existing3.ref = element.ref
-      _existing3.return = returnFiber
-      return _existing3
+
+    if (element.type === REACT_FRAGMENT_TYPE) {
+      var created = createFiberFromFragment(element.props.children, returnFiber.mode, element.key)
+      created.return = returnFiber
+      return created
     }
-    deleteChild(returnFiber, child)
+
+    var created = createFiberFromElement(element, returnFiber.mode)
+    created.ref = element.ref
+    created.return = returnFiber
+    return created
   }
 
   function mapRemainingChildren(currentFirstChild) {
@@ -177,15 +205,31 @@ export function ChildReconciler(shouldTrackSideEffects) {
   }
 
   function updateSlot(returnFiber, oldFiber, newChild) {
+    var key = oldFiber !== null ? oldFiber.key : null
+
     if (typeof newChild === 'string' || typeof newChild === 'number')
       return updateTextNode(returnFiber, oldFiber, newChild)
     if (typeof newChild === 'object' && newChild !== null) {
       switch (newChild.$$typeof) {
         case REACT_ELEMENT_TYPE: {
-          var key = oldFiber !== null ? oldFiber.key : null
-          if (newChild.key !== key) return null
-          return updateElement(returnFiber, oldFiber, newChild)
+          if (newChild.key === key) {
+            if (newChild.type === REACT_FRAGMENT_TYPE) {
+              return updateFragment(returnFiber, oldFiber, newChild.props.children, key)
+            }
+
+            return updateElement(returnFiber, oldFiber, newChild)
+          } else {
+            return null
+          }
         }
+      }
+
+      if (Array.isArray(newChild)) {
+        if (key !== null) {
+          return null
+        }
+
+        return updateFragment(returnFiber, oldFiber, newChild, null)
       }
     }
     return null
@@ -200,9 +244,20 @@ export function ChildReconciler(shouldTrackSideEffects) {
       switch (newChild.$$typeof) {
         case REACT_ELEMENT_TYPE: {
           var key = newChild.key === null ? newIdx : newChild.key
+
+          if (newChild.type === REACT_FRAGMENT_TYPE) {
+            return updateFragment(returnFiber, _matchedFiber, newChild.props.children, newChild.key)
+          }
+
           var _matchedFiber = existingChildren.get(key) || null
           return updateElement(returnFiber, _matchedFiber, newChild)
         }
+      }
+
+      if (isArray$1(newChild)) {
+        var _matchedFiber3 = existingChildren.get(newIdx) || null
+
+        return updateFragment(returnFiber, _matchedFiber3, newChild, expirationTime, null)
       }
     }
     return null
@@ -270,6 +325,17 @@ export function ChildReconciler(shouldTrackSideEffects) {
 
     var existing = useFiber(current, element.props)
     existing.ref = element.ref
+    existing.return = returnFiber
+    return existing
+  }
+
+  function updateFragment(returnFiber, current, fragment, key) {
+    if (current === null || current.tag !== Fragment) {
+      var created = createFiberFromFragment(fragment, returnFiber.mode, expirationTime, key)
+      created.return = returnFiber
+      return created
+    }
+    var existing = useFiber(current, fragment)
     existing.return = returnFiber
     return existing
   }

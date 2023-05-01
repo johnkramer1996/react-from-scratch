@@ -70,7 +70,12 @@ export function createFiberFromElement(element, mode) {
   return createFiberFromTypeAndProps(type, key, pendingProps, mode)
 }
 
-export function createFiberFromTypeAndProps(type, key, props, mode) {
+export function createFiberFromFragment(elements, mode, key) {
+  var fiber = createFiber(Fragment, elements, key, mode)
+  return fiber
+}
+
+export function createFiberFromTypeAndProps(type, key, pendingProps, mode) {
   var fiberTag = IndeterminateComponent
 
   if (typeof type === 'function') {
@@ -82,7 +87,7 @@ export function createFiberFromTypeAndProps(type, key, props, mode) {
   } else {
     getTag: switch (type) {
       case REACT_FRAGMENT_TYPE:
-        return createFiberFromFragment(pendingProps.children, mode, expirationTime, key)
+        return createFiberFromFragment(pendingProps.children, mode, key)
       default: {
         if (typeof type === 'object' && type !== null) {
           switch (type.$$typeof) {
@@ -108,7 +113,7 @@ export function createFiberFromTypeAndProps(type, key, props, mode) {
     }
   }
 
-  var fiber = new FiberNode(fiberTag, props, key, mode)
+  var fiber = new FiberNode(fiberTag, pendingProps, key, mode)
   fiber.type = type
   return fiber
 }
