@@ -21,7 +21,9 @@ export const App = () => {
 
   console.log('render', count)
 
-  const onClick = () => console.log('click')
+  const onClick = (event) => {
+    console.log('click')
+  }
 
   return createElement(
     'h1',

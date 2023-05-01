@@ -7,6 +7,7 @@
  * updateHostText$1
  */
 
+import { getRootHostContainer } from './ReactDom'
 import {
   appendAllChildren,
   createInstance,
@@ -55,28 +56,35 @@ function completeWork(current, workInProgress) {
   var newProps = workInProgress.pendingProps
   switch (workInProgress.tag) {
     case HostComponent: {
+      var rootContainerInstance = getRootHostContainer()
       var type = workInProgress.type
 
       if (current !== null && workInProgress.stateNode != null) {
-        updateHostComponent$1(current, workInProgress, type, newProps)
+        updateHostComponent$1(current, workInProgress, type, newProps, rootContainerInstance)
         if (current.ref !== workInProgress.ref) markRef$1(workInProgress)
       } else {
         if (!newProps) return null
-        var instance = createInstance(type, newProps, workInProgress)
+        var instance = createInstance(type, newProps, rootContainerInstance, workInProgress)
         appendAllChildren(instance, workInProgress)
         workInProgress.stateNode = instance
-        finalizeInitialChildren(instance, type, newProps)
+        finalizeInitialChildren(instance, type, newProps, rootContainerInstance)
       }
       if (workInProgress.ref !== null) markRef$1(workInProgress)
       return null
     }
 
     case HostText: {
+      var rootContainerInstance = getRootHostContainer()
       var newText = newProps
 
       if (current !== null && workInProgress.stateNode != null)
         updateHostText$1(current, workInProgress, current.memoizedProps, newText)
-      else workInProgress.stateNode = createTextInstance(newText, workInProgress)
+      else
+        workInProgress.stateNode = createTextInstance(
+          newText,
+          rootContainerInstance,
+          workInProgress,
+        )
       return null
     }
   }
@@ -92,12 +100,12 @@ function markRef$1(workInProgress) {
   workInProgress.effectTag |= Ref
 }
 
-function updateHostComponent$1(current, workInProgress, type, newProps) {
+function updateHostComponent$1(current, workInProgress, type, newProps, rootContainerInstance) {
   var oldProps = current.memoizedProps
   if (oldProps === newProps) return
 
   var instance = workInProgress.stateNode
-  var updatePayload = prepareUpdate(instance, type, oldProps, newProps)
+  var updatePayload = prepareUpdate(instance, type, oldProps, newProps, rootContainerInstance)
 
   workInProgress.updateQueue = updatePayload
 

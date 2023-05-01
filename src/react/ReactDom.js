@@ -7,9 +7,16 @@ import { flushSyncCallbackQueue, scheduleUpdateOnFiber } from './scheduleUpdateO
  * updateContainer
  */
 
+var rootContainerInstance = null
+
 export function render(children, container) {
   var root = createFiberRoot(container)
+  rootContainerInstance = container
   unbatchedUpdates(() => updateContainer(children, root))
+}
+
+export function getRootHostContainer() {
+  return rootContainerInstance
 }
 
 export function unbatchedUpdates(fn) {
