@@ -1,7 +1,7 @@
 import { shallowEqual } from './React'
 import { createFiberFromTypeAndProps, createWorkInProgress } from './fiber'
 import { reconcileChildren } from './reconcileChildren'
-import { renderWithHooks } from './renderWithHooks'
+import { readContext, renderWithHooks } from './renderWithHooks'
 
 /**
  * beginWork
@@ -46,6 +46,10 @@ export function beginWork(current, workInProgress) {
       return updateHostText(current, workInProgress)
     case Fragment:
       return updateFragment(current, workInProgress)
+    case ContextProvider:
+      return updateContextProvider(current, workInProgress)
+    case ContextConsumer:
+      return updateContextConsumer(current, workInProgress)
   }
   return null
 }
@@ -115,24 +119,70 @@ function updateFragment(current, workInProgress) {
   return reconcileChildren(current, workInProgress, workInProgress.pendingProps)
 }
 
-export function updateHostComponent(current, workInProgress) {
+function updateContextProvider(current, workInProgress, renderExpirationTime) {
+  var providerType = workInProgress.type
+  var context = providerType._context
+  var newProps = workInProgress.pendingProps
+  var oldProps = workInProgress.memoizedProps
+  var newValue = newProps.value
+
+  // pushProvider(workInProgress, newValue)
+  context._currentValue = newValue
+
+  // if (oldProps !== null) {
+  //   var oldValue = oldProps.value
+  //   var changedBits = calculateChangedBits(context, newValue, oldValue)
+
+  //   if (changedBits === 0) {
+  //     // No change. Bailout early if children are the same.
+  //     if (oldProps.children === newProps.children && !hasContextChanged()) {
+  //       return bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime)
+  //     }
+  //   } else {
+  //     // The context value changed. Search for matching consumers and schedule
+  //     // them to update.
+  //     propagateContextChange(workInProgress, context, changedBits, renderExpirationTime)
+  //   }
+  // }
+
+  var newChildren = newProps.children
+  reconcileChildren(current, workInProgress, newChildren, renderExpirationTime)
+  return workInProgress.child
+}
+
+function updateContextConsumer(current, workInProgress, renderLanes) {
+  var context = workInProgress.type
+  var newProps = workInProgress.pendingProps
+  var render = newProps.children
+
+  var newValue = readContext(context)
+  var newChildren
+
+  newChildren = render(newValue)
+
+  workInProgress.flags |= PerformedWork
+  reconcileChildren(current, workInProgress, newChildren, renderLanes)
+  return workInProgress.child
+}
+
+function updateHostComponent(current, workInProgress) {
   return reconcileChildren(current, workInProgress, workInProgress.pendingProps.children)
 }
 
-export function updateHostText(current, workInProgress) {
+function updateHostText(current, workInProgress) {
   return null
 }
 
-export function updateHostRoot(current, workInProgress) {
+function updateHostRoot(current, workInProgress) {
   var nextChildren = workInProgress.pendingProps.children
   return reconcileChildren(current, workInProgress, nextChildren)
 }
 
-export function bailoutOnAlreadyFinishedWork(current, workInProgress) {
+function bailoutOnAlreadyFinishedWork(current, workInProgress) {
   return cloneChildFibers(current, workInProgress)
 }
 
-export function cloneChildFibers(current, workInProgress) {
+function cloneChildFibers(current, workInProgress) {
   if (workInProgress.child === null) return
 
   var currentChild = workInProgress.child

@@ -67,6 +67,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     if (oldFiber === null) {
       for (; newIdx < newChildren.length; newIdx++) {
         var _newFiber = createChild(returnFiber, newChildren[newIdx])
+
         placeChild(_newFiber, lastPlacedIndex, newIdx)
 
         if (previousNewFiber === null) resultingFirstChild = _newFiber
@@ -348,7 +349,15 @@ function ChildReconciler(shouldTrackSideEffects) {
           return _created
         }
       }
+
+      if (Array.isArray(newChild)) {
+        var _created3 = createFiberFromFragment(newChild, returnFiber.mode, null)
+
+        _created3.return = returnFiber
+        return _created3
+      }
     }
+
     return null
   }
 

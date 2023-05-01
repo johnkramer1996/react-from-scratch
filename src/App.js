@@ -1,37 +1,57 @@
-import { REACT_FRAGMENT_TYPE, createElement, forwardRef, memo } from './react/React'
-import { useEffect, useLayoutEffect, useReducer, useRef, useState } from './react/renderWithHooks'
+import { Memo } from './components/Memo'
+import { Parent } from './components/Parent'
+import { ThemeContext } from './components/ThemeContext'
+import { createElement } from './react/React'
+import { useLayoutEffect, useMemo, useRef, useState } from './react/renderWithHooks'
 
-export const App = memo((props, ref) => {
-  console.log(ref)
-  // const [state, setstate] = useState(1)
-  const [stateReducer, dispatch] = useReducer((state, action) => action(state), 1)
-
-  const count = useRef(0)
-  count.current++
-
-  useEffect(() => {
-    dispatch((s) => s + 1)
-    console.log('message 1')
-  }, [])
+export const App = () => {
+  console.log('render App')
+  const [state, setState] = useState([
+    { id: 1, name: 'name 1' },
+    { id: 2, name: 'name 2' },
+    { id: 3, name: 'name 3' },
+    { id: 4, name: 'name 4' },
+    { id: 5, name: 'name 5' },
+  ])
+  const [state2, setState2] = useState(0)
+  const ref = useRef()
+  const prevValue = useRef(state2)
 
   useLayoutEffect(() => {
-    console.log('message 21')
-  }, [])
+    console.log('App useEffect')
 
-  console.log('render', count)
+    return () => console.log('unmount App useEffect')
+  })
 
-  const onClick = (event) => {
-    console.log('click')
-  }
+  const onClick = useMemo(
+    () => () => {
+      setState2(state2)
+    },
+    [],
+  )
 
   return createElement(
-    REACT_FRAGMENT_TYPE,
-    {},
-    createElement(
-      'h1',
-      { onClick, style: { color: count.current === 1 ? 'red' : 'green' } },
-      1,
-      createElement(REACT_FRAGMENT_TYPE, {}, 123),
+    'div',
+    null,
+    state.map((i, index) =>
+      createElement(
+        'div',
+        {
+          key: i.id,
+          onClick: () => {
+            setState2((prev) => prev + 1)
+            prevValue.current = state2
+          },
+        },
+        i.name,
+      ),
     ),
+    createElement(Memo, null, 1),
+    createElement(
+      ThemeContext.Provider,
+      { value: state2 },
+      createElement('div', null, createElement(Parent, { onClick }, state2)),
+    ),
+    createElement(ThemeContext.Consumer, null, (props) => 'привет мир' + JSON.stringify(props)),
   )
-})
+}

@@ -82,6 +82,86 @@ export function shallowEqual(objA, objB) {
   return true
 }
 
+export function createContext(defaultValue, calculateChangedBits) {
+  if (calculateChangedBits === undefined) {
+    calculateChangedBits = null
+  }
+
+  var context = {
+    $$typeof: REACT_CONTEXT_TYPE,
+    _calculateChangedBits: calculateChangedBits,
+    _currentValue: defaultValue,
+    _currentValue2: defaultValue,
+    _threadCount: 0,
+    // These are circular
+    Provider: null,
+    Consumer: null,
+  }
+  context.Provider = {
+    $$typeof: REACT_PROVIDER_TYPE,
+    _context: context,
+  }
+  var Consumer = {
+    $$typeof: REACT_CONTEXT_TYPE,
+    _context: context,
+    _calculateChangedBits: context._calculateChangedBits,
+  }
+
+  // todo можно удалить?
+  Object.defineProperties(Consumer, {
+    Provider: {
+      get: function () {
+        return context.Provider
+      },
+      set: function (_Provider) {
+        context.Provider = _Provider
+      },
+    },
+    _currentValue: {
+      get: function () {
+        return context._currentValue
+      },
+      set: function (_currentValue) {
+        context._currentValue = _currentValue
+      },
+    },
+    _currentValue2: {
+      get: function () {
+        return context._currentValue2
+      },
+      set: function (_currentValue2) {
+        context._currentValue2 = _currentValue2
+      },
+    },
+    _threadCount: {
+      get: function () {
+        return context._threadCount
+      },
+      set: function (_threadCount) {
+        context._threadCount = _threadCount
+      },
+    },
+    Consumer: {
+      get: function () {
+        return context.Consumer
+      },
+    },
+    displayName: {
+      get: function () {
+        return context.displayName
+      },
+      set: function (displayName) {},
+    },
+  })
+
+  context.Consumer = Consumer
+
+  context._currentRenderer = null
+  context._currentRenderer2 = null
+
+  return context
+}
+
 function ReactElement(type, key, ref, props) {
   return {
     $$typeof: REACT_ELEMENT_TYPE,

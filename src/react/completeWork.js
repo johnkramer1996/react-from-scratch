@@ -58,9 +58,11 @@ function completeWork(current, workInProgress) {
     case FunctionComponent:
     case ForwardRef:
     case Fragment:
+    case ContextConsumer:
     case ClassComponent:
     case HostRoot:
     case MemoComponent:
+    case ContextProvider:
       return null
 
     case HostComponent: {

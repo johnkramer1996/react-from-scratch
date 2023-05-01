@@ -17,6 +17,10 @@ export function renderWithHooks(current, workInProgress, Component, props, secon
   return children
 }
 
+export function readContext(context) {
+  return context._currentValue
+}
+
 export function useContext(Context, unstable_observedBits) {
   var dispatcher = resolveDispatcher()
   return dispatcher.useContext(Context, unstable_observedBits)
