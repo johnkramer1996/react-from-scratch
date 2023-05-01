@@ -60,6 +60,7 @@ function completeWork(current, workInProgress) {
     case Fragment:
     case ClassComponent:
     case HostRoot:
+    case MemoComponent:
       return null
 
     case HostComponent: {

@@ -1,4 +1,5 @@
-import { createWorkInProgress } from './fiber'
+import { shallowEqual } from './React'
+import { createFiberFromTypeAndProps, createWorkInProgress } from './fiber'
 import { reconcileChildren } from './reconcileChildren'
 import { renderWithHooks } from './renderWithHooks'
 
@@ -30,6 +31,12 @@ export function beginWork(current, workInProgress) {
         workInProgress.type,
         workInProgress.pendingProps,
       )
+    }
+    case MemoComponent: {
+      var _type2 = workInProgress.type
+      var _unresolvedProps3 = workInProgress.pendingProps // Resolve outer props first, then resolve inner props.
+
+      return updateMemoComponent(current, workInProgress, _type2, _unresolvedProps3)
     }
     case HostRoot:
       return updateHostRoot(current, workInProgress)
@@ -67,6 +74,41 @@ function updateForwardRef(current, workInProgress, Component, nextProps) {
 
   workInProgress.effectTag |= PerformedWork
   return reconcileChildren(current, workInProgress, nextChildren)
+}
+
+function updateMemoComponent(current, workInProgress, Component, nextProps) {
+  if (current === null) {
+    var type = Component.type
+    var child = createFiberFromTypeAndProps(
+      Component.type,
+      null,
+      nextProps,
+      workInProgress,
+      workInProgress.mode,
+    )
+    child.ref = workInProgress.ref
+    child.return = workInProgress
+    workInProgress.child = child
+    return child
+  }
+
+  var currentChild = current.child // This is always exactly one child
+
+  var prevProps = currentChild.memoizedProps // Default to shallow comparison
+
+  var compare = Component.compare
+  compare = compare !== null ? compare : shallowEqual
+
+  if (compare(prevProps, nextProps) && current.ref === workInProgress.ref) {
+    return bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime)
+  }
+
+  workInProgress.flags |= PerformedWork
+  var newChild = createWorkInProgress(currentChild, nextProps)
+  newChild.ref = workInProgress.ref
+  newChild.return = workInProgress
+  workInProgress.child = newChild
+  return newChild
 }
 
 function updateFragment(current, workInProgress) {
