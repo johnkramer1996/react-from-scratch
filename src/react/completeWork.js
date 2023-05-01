@@ -14,6 +14,7 @@ import {
   finalizeInitialChildren,
   prepareUpdate,
 } from './instance'
+import { flushSyncCallbackQueue } from './scheduleUpdateOnFiber'
 
 export function completeUnitOfWork(workInProgress) {
   do {
@@ -61,7 +62,7 @@ function completeWork(current, workInProgress) {
         if (current.ref !== workInProgress.ref) markRef$1(workInProgress)
       } else {
         if (!newProps) return null
-        var instance = createInstance(type)
+        var instance = createInstance(type, newProps, workInProgress)
         appendAllChildren(instance, workInProgress)
         workInProgress.stateNode = instance
         finalizeInitialChildren(instance, type, newProps)
@@ -75,7 +76,7 @@ function completeWork(current, workInProgress) {
 
       if (current !== null && workInProgress.stateNode != null)
         updateHostText$1(current, workInProgress, current.memoizedProps, newText)
-      else workInProgress.stateNode = createTextInstance(newText)
+      else workInProgress.stateNode = createTextInstance(newText, workInProgress)
       return null
     }
   }

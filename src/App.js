@@ -21,5 +21,12 @@ export const App = () => {
 
   console.log('render', count)
 
-  return createElement('h1', { style: { color: count.current === 1 ? 'red' : 'green' } }, 1, 1)
+  const onClick = () => console.log('click')
+
+  return createElement(
+    'h1',
+    { onClick, style: { color: count.current === 1 ? 'red' : 'green' } },
+    1,
+    1,
+  )
 }

@@ -22,9 +22,7 @@ export function scheduleUpdateOnFiber(fiber) {
     performSyncWorkOnRoot(root)
   } else {
     ensureRootIsScheduled(root)
-    if (executionContext === NoContext) {
-      flushSyncCallbackQueue()
-    }
+    if (executionContext === NoContext) flushSyncCallbackQueue()
   }
 }
 
