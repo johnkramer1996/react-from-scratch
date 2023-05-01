@@ -1,5 +1,10 @@
 import { REACT_ELEMENT_TYPE, REACT_FRAGMENT_TYPE } from './React'
-import { createFiberFromElement, createFiberFromText, createWorkInProgress } from './fiber'
+import {
+  createFiberFromElement,
+  createFiberFromFragment,
+  createFiberFromText,
+  createWorkInProgress,
+} from './fiber'
 
 /**
  * reconcileChildFibers
@@ -140,47 +145,36 @@ export function ChildReconciler(shouldTrackSideEffects) {
     var key = element.key
     var child = currentFirstChild
 
-    if (child !== null) {
-      if (child.key === key) {
-        switch (child.tag) {
-          case Fragment: {
-            if (element.type === REACT_FRAGMENT_TYPE) {
-              var existing = useFiber(child, element.props.children)
-              existing.return = returnFiber
-
-              return existing
-            }
-            break
-          }
-
-          default: {
-            if (child.type === element.type) {
-              var existing = useFiber(child, element.props)
-
-              existing.ref = element.ref
-              existing.return = returnFiber
-
-              return existing
-            }
-
-            break
-          }
-        }
-      } else {
-        deleteChild(returnFiber, child)
+    if (child === null) {
+      if (element.type === REACT_FRAGMENT_TYPE) {
+        var created = createFiberFromFragment(element.props.children, returnFiber.mode, element.key)
+        created.return = returnFiber
+        return created
       }
-    }
 
-    if (element.type === REACT_FRAGMENT_TYPE) {
-      var created = createFiberFromFragment(element.props.children, returnFiber.mode, element.key)
+      var created = createFiberFromElement(element, returnFiber.mode)
+      created.ref = element.ref
       created.return = returnFiber
       return created
     }
+    if (child.key === key) {
+      if (child.tag === Fragment && element.type === REACT_FRAGMENT_TYPE) {
+        var existing = useFiber(child, element.props.children)
+        existing.return = returnFiber
 
-    var created = createFiberFromElement(element, returnFiber.mode)
-    created.ref = element.ref
-    created.return = returnFiber
-    return created
+        return existing
+      }
+      if (child.type === element.type) {
+        var existing = useFiber(child, element.props)
+
+        existing.ref = element.ref
+        existing.return = returnFiber
+
+        return existing
+      }
+    }
+
+    deleteChild(returnFiber, child)
   }
 
   function mapRemainingChildren(currentFirstChild) {
