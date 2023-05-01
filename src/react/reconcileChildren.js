@@ -24,8 +24,6 @@ import {
  * createChild
  */
 
-var reconcileChildFibers = ChildReconciler(true)
-var mountChildFibers = ChildReconciler(false)
 export function reconcileChildren(current, workInProgress, nextChildren) {
   var child =
     current === null
@@ -34,7 +32,9 @@ export function reconcileChildren(current, workInProgress, nextChildren) {
   return (workInProgress.child = child)
 }
 
-export function ChildReconciler(shouldTrackSideEffects) {
+var reconcileChildFibers = ChildReconciler(true)
+var mountChildFibers = ChildReconciler(false)
+function ChildReconciler(shouldTrackSideEffects) {
   function reconcileChildFibers(returnFiber, currentFirstChild, newChild) {
     if (typeof newChild === 'object' && newChild !== null) {
       switch (newChild.$$typeof) {

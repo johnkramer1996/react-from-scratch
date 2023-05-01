@@ -1,4 +1,5 @@
-import { ensureListeningTo, registrationNameModules } from './listener'
+import { ensureListeningTo } from './listener'
+import { registrationNameModules } from './registrationName'
 
 export function createTextInstance(text, rootContainerInstance, internalInstanceHandle) {
   var textNode = document.createTextNode(text)

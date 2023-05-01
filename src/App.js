@@ -24,12 +24,14 @@ export const App = forwardRef((props, ref) => {
     console.log('click')
   }
 
-  return createElement(REACT_FRAGMENT_TYPE, {}, 123)
-
   return createElement(
-    'h1',
-    { onClick, style: { color: count.current === 1 ? 'red' : 'green' } },
-    1,
-    createElement(REACT_FRAGMENT_TYPE, {}, 123),
+    REACT_FRAGMENT_TYPE,
+    {},
+    createElement(
+      'h1',
+      { onClick, style: { color: count.current === 1 ? 'red' : 'green' } },
+      1,
+      createElement(REACT_FRAGMENT_TYPE, {}, 123),
+    ),
   )
 })
