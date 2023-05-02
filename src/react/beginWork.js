@@ -12,7 +12,7 @@ import { readContext, renderWithHooks } from './renderWithHooks'
  * cloneChildFibers
  */
 export function beginWork(current, workInProgress) {
-  if (current !== null) {
+  if (false && current !== null) {
     var oldProps = current.memoizedProps
     var newProps = workInProgress.pendingProps
 
@@ -114,7 +114,7 @@ function updateMemoComponent(current, workInProgress, Component, nextProps) {
 
   var compare = Component.compare
   compare = compare !== null ? compare : shallowEqual
-  debugger
+
   if (compare(prevProps, nextProps) && current.ref === workInProgress.ref) {
     return bailoutOnAlreadyFinishedWork(current, workInProgress)
   }

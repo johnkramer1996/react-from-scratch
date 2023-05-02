@@ -83,11 +83,13 @@ function dispatchDiscreteEvent(topLevelType, eventSystemFlags, container, native
   var nativeEventTarget = getEventTarget(nativeEvent)
   var targetInst = getClosestInstanceFromNode(nativeEventTarget)
   if (!targetInst) return
+
   var registrationName =
     simpleEventPluginEventTypes[nativeEvent.type].phasedRegistrationNames['bubbled']
 
   var listener = getListener(targetInst, registrationName)
   if (!listener) return
+
   var prevExecutionContext = executionContext
   executionContext |= DiscreteEventContext
 
