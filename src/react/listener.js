@@ -87,7 +87,7 @@ function dispatchDiscreteEvent(topLevelType, eventSystemFlags, container, native
     simpleEventPluginEventTypes[nativeEvent.type].phasedRegistrationNames['bubbled']
 
   var listener = getListener(targetInst, registrationName)
-
+  if (!listener) return
   var prevExecutionContext = executionContext
   executionContext |= DiscreteEventContext
 

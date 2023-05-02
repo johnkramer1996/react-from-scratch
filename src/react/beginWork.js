@@ -12,6 +12,18 @@ import { readContext, renderWithHooks } from './renderWithHooks'
  * cloneChildFibers
  */
 export function beginWork(current, workInProgress) {
+  if (current !== null) {
+    var oldProps = current.memoizedProps
+    var newProps = workInProgress.pendingProps
+
+    if (oldProps !== newProps || workInProgress.type !== current.type);
+    else if (workInProgress.expirationTime < renderExpirationTime) {
+      // ! ЕСЛИ ВРЕМЯ НЕ ИЗМЕНИЛОСЬ, ТО НЕТ ИЗМЕНЕНИЙ у текущего файбера
+      // ! нужно перейти к детям или вернуть null если нет изменений
+      return bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime)
+    }
+  }
+
   switch (workInProgress.tag) {
     case IndeterminateComponent: {
       return mountIndeterminateComponent(current, workInProgress, workInProgress.type)
@@ -102,9 +114,9 @@ function updateMemoComponent(current, workInProgress, Component, nextProps) {
 
   var compare = Component.compare
   compare = compare !== null ? compare : shallowEqual
-
+  debugger
   if (compare(prevProps, nextProps) && current.ref === workInProgress.ref) {
-    return bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime)
+    return bailoutOnAlreadyFinishedWork(current, workInProgress)
   }
 
   workInProgress.flags |= PerformedWork
