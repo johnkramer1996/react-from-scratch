@@ -17,11 +17,13 @@ import {
   REACT_MEMO_TYPE,
   REACT_PROVIDER_TYPE,
 } from './React'
+import { initializeUpdateQueue } from './update'
 
 export function createFiberRoot(containerInfo) {
   var root = new FiberRootNode(containerInfo)
   var fiberNode = (root.current = createHostRootFiber())
   fiberNode.stateNode = root
+  initializeUpdateQueue(fiberNode)
   return root
 }
 
@@ -140,6 +142,8 @@ function createFiber(tag, pendingProps, key, mode) {
 function FiberRootNode(containerInfo) {
   this.current = null
   this.containerInfo = containerInfo
+  this.context = null
+  this.pendingContext = null
   this.finishedWork = null
   this.callbackNode = null
 }
@@ -167,6 +171,8 @@ function FiberNode(tag, pendingProps, key, mode) {
   this.nextEffect = null // ! след. файбер, начинается с конца
   this.firstEffect = null // ! ссылка на начало
   this.lastEffect = null // ! ссылка на конец
+  this.expirationTime = NoWork //
+  this.childExpirationTime = NoWork
   this.alternate = null
 }
 

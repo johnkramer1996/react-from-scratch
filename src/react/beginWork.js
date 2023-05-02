@@ -6,6 +6,7 @@ import {
 } from './fiber'
 import { reconcileChildren } from './reconcileChildren'
 import { readContext, renderWithHooks } from './renderWithHooks'
+import { cloneUpdateQueue, processUpdateQueue } from './update'
 
 /**
  * beginWork
@@ -199,8 +200,19 @@ function updateHostText(current, workInProgress) {
 }
 
 function updateHostRoot(current, workInProgress) {
-  var nextChildren = workInProgress.pendingProps.children
-  return reconcileChildren(current, workInProgress, nextChildren)
+  var nextProps = workInProgress.pendingProps
+  var prevState = workInProgress.memoizedState
+  var prevChildren = prevState !== null ? prevState.element : null
+  cloneUpdateQueue(current, workInProgress)
+  processUpdateQueue(workInProgress, nextProps, null, renderExpirationTime)
+
+  var nextState = workInProgress.memoizedState
+  var nextChildren = nextState.element
+  if (nextChildren === prevChildren)
+    return bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime)
+
+  reconcileChildren(current, workInProgress, nextChildren)
+  return workInProgress.child
 }
 
 function bailoutOnAlreadyFinishedWork(current, workInProgress) {

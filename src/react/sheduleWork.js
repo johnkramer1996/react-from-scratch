@@ -74,7 +74,6 @@ function finishSyncRender(root) {
 }
 
 function markUpdateTimeFromFiberToRoot(fiber, expirationTime) {
-  // Update the source fiber's expiration time
   if (fiber.expirationTime < expirationTime) {
     fiber.expirationTime = expirationTime
   }
