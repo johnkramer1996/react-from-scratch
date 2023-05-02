@@ -5,7 +5,6 @@ import { createElement } from './react/React'
 import { useLayoutEffect, useMemo, useRef, useState } from './react/renderWithHooks'
 
 export const App = () => {
-  console.log('render App')
   const [state, setState] = useState([
     { id: 1, name: 'name 1' },
     { id: 2, name: 'name 2' },
@@ -14,26 +13,12 @@ export const App = () => {
     { id: 5, name: 'name 5' },
   ])
   const [state2, setState2] = useState(0)
-  const ref = useRef()
   const prevValue = useRef(state2)
-
-  useLayoutEffect(() => {
-    console.log('App useEffect')
-
-    return () => console.log('unmount App useEffect')
-  })
-
-  const onClick = useMemo(
-    () => () => {
-      setState2(state2)
-    },
-    [],
-  )
 
   return createElement(
     'div',
     null,
-    state.map((i, index) =>
+    state.map((i) =>
       createElement(
         'div',
         {
@@ -50,8 +35,7 @@ export const App = () => {
     createElement(
       ThemeContext.Provider,
       { value: state2 },
-      createElement('div', null, createElement(Parent, { onClick }, state2)),
+      createElement('div', null, createElement(Parent, {}, state2)),
     ),
-    createElement(ThemeContext.Consumer, null, (props) => 'привет мир' + JSON.stringify(props)),
   )
 }

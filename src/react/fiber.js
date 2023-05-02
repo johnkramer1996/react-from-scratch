@@ -174,3 +174,7 @@ function shouldConstruct(Component) {
   var prototype = Component.prototype
   return !!(prototype && prototype.isReactComponent)
 }
+
+export function isSimpleFunctionComponent(type) {
+  return typeof type === 'function' && !shouldConstruct(type) && type.defaultProps === undefined
+}

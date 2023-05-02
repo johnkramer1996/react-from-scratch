@@ -1,5 +1,9 @@
 import { shallowEqual } from './React'
-import { createFiberFromTypeAndProps, createWorkInProgress } from './fiber'
+import {
+  createFiberFromTypeAndProps,
+  createWorkInProgress,
+  isSimpleFunctionComponent,
+} from './fiber'
 import { reconcileChildren } from './reconcileChildren'
 import { readContext, renderWithHooks } from './renderWithHooks'
 
@@ -95,6 +99,17 @@ function updateForwardRef(current, workInProgress, Component, nextProps) {
 function updateMemoComponent(current, workInProgress, Component, nextProps) {
   if (current === null) {
     var type = Component.type
+
+    if (
+      isSimpleFunctionComponent(type) &&
+      Component.compare === null &&
+      Component.defaultProps === undefined
+    ) {
+      workInProgress.tag = SimpleMemoComponent
+      workInProgress.type = type
+
+      return updateSimpleMemoComponent(current, workInProgress, type, nextProps)
+    }
     var child = createFiberFromTypeAndProps(
       Component.type,
       null,
@@ -108,10 +123,8 @@ function updateMemoComponent(current, workInProgress, Component, nextProps) {
     return child
   }
 
-  var currentChild = current.child // This is always exactly one child
-
-  var prevProps = currentChild.memoizedProps // Default to shallow comparison
-
+  var currentChild = current.child
+  var prevProps = currentChild.memoizedProps
   var compare = Component.compare
   compare = compare !== null ? compare : shallowEqual
 
@@ -127,53 +140,53 @@ function updateMemoComponent(current, workInProgress, Component, nextProps) {
   return newChild
 }
 
+function updateSimpleMemoComponent(current, workInProgress, Component, nextProps) {
+  if (current !== null) {
+    var prevProps = current.memoizedProps
+
+    if (
+      shallowEqual(prevProps, nextProps) &&
+      current.ref === workInProgress.ref &&
+      workInProgress.type === current.type
+    ) {
+      if (updateExpirationTime < renderExpirationTime) {
+        workInProgress.expirationTime = current.expirationTime
+        return bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime)
+      }
+    }
+  }
+
+  return updateFunctionComponent(current, workInProgress, Component, nextProps)
+}
+
 function updateFragment(current, workInProgress) {
   return reconcileChildren(current, workInProgress, workInProgress.pendingProps)
 }
 
-function updateContextProvider(current, workInProgress, renderExpirationTime) {
+function updateContextProvider(current, workInProgress) {
   var providerType = workInProgress.type
   var context = providerType._context
   var newProps = workInProgress.pendingProps
   var oldProps = workInProgress.memoizedProps
   var newValue = newProps.value
 
-  // pushProvider(workInProgress, newValue)
   context._currentValue = newValue
 
-  // if (oldProps !== null) {
-  //   var oldValue = oldProps.value
-  //   var changedBits = calculateChangedBits(context, newValue, oldValue)
-
-  //   if (changedBits === 0) {
-  //     // No change. Bailout early if children are the same.
-  //     if (oldProps.children === newProps.children && !hasContextChanged()) {
-  //       return bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime)
-  //     }
-  //   } else {
-  //     // The context value changed. Search for matching consumers and schedule
-  //     // them to update.
-  //     propagateContextChange(workInProgress, context, changedBits, renderExpirationTime)
-  //   }
-  // }
-
   var newChildren = newProps.children
-  reconcileChildren(current, workInProgress, newChildren, renderExpirationTime)
+  reconcileChildren(current, workInProgress, newChildren)
   return workInProgress.child
 }
 
-function updateContextConsumer(current, workInProgress, renderLanes) {
+function updateContextConsumer(current, workInProgress) {
   var context = workInProgress.type
   var newProps = workInProgress.pendingProps
   var render = newProps.children
 
   var newValue = readContext(context)
-  var newChildren
-
-  newChildren = render(newValue)
+  var newChildren = render(newValue)
 
   workInProgress.flags |= PerformedWork
-  reconcileChildren(current, workInProgress, newChildren, renderLanes)
+  reconcileChildren(current, workInProgress, newChildren)
   return workInProgress.child
 }
 

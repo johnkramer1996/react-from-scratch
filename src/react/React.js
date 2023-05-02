@@ -156,9 +156,6 @@ export function createContext(defaultValue, calculateChangedBits) {
 
   context.Consumer = Consumer
 
-  context._currentRenderer = null
-  context._currentRenderer2 = null
-
   return context
 }
 
