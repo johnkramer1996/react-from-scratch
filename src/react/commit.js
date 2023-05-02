@@ -7,7 +7,7 @@ import {
   updateFiberProps,
   updateProperties,
 } from './instance'
-import { ensureRootIsScheduled, flushSyncCallbackQueue } from './scheduleUpdateOnFiber'
+import { ensureRootIsScheduled, flushSyncCallbackQueue } from './sheduleWork'
 
 export function commitRoot(root) {
   var finishedWork = root.finishedWork

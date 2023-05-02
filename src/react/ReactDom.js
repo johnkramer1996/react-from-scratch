@@ -1,5 +1,5 @@
 import { createFiberRoot } from './fiber'
-import { flushSyncCallbackQueue, scheduleUpdateOnFiber } from './scheduleUpdateOnFiber'
+import { flushSyncCallbackQueue, sheduleWork } from './sheduleWork'
 
 /**
  * render
@@ -37,5 +37,5 @@ function unbatchedUpdates(fn) {
 function updateContainer(children, fiberRootNode) {
   var fiberNode = fiberRootNode.current
   fiberNode.pendingProps = { children }
-  scheduleUpdateOnFiber(fiberNode)
+  sheduleWork(fiberNode)
 }

@@ -4,7 +4,7 @@ import { completeUnitOfWork } from './completeWork'
 import { createWorkInProgress } from './fiber'
 
 /**
- * scheduleUpdateOnFiber
+ * sheduleWork
  * performSyncWorkOnRoot
  * prepareFreshStack
  * workLoopSync
@@ -13,7 +13,7 @@ import { createWorkInProgress } from './fiber'
  * getRoot
  */
 
-export function scheduleUpdateOnFiber(fiber) {
+export function sheduleWork(fiber) {
   var root = getRoot(fiber)
   if (
     (executionContext & LegacyUnbatchedContext) !== NoContext &&

@@ -1,4 +1,4 @@
-import { scheduleUpdateOnFiber } from './scheduleUpdateOnFiber'
+import { sheduleWork } from './sheduleWork'
 
 export function renderWithHooks(current, workInProgress, Component, props, secondArg) {
   currentlyRenderingFiber$1 = workInProgress
@@ -355,7 +355,7 @@ function dispatchAction(fiber, queue, action) {
   //  update.eagerState = eagerState
   //  if (Object.is(eagerState, currentState)) return
   //}
-  scheduleUpdateOnFiber(fiber)
+  sheduleWork(fiber)
 }
 
 function pushEffect(tag, create, destroy, deps) {
