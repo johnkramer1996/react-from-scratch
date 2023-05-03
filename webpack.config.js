@@ -1,5 +1,5 @@
 const path = require('path')
-const HtmlWebpackPlugin = require('html-webpack-plugin') // Импортируем плагин
+const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 let mode = 'development'
 if (process.env.NODE_ENV === 'production') {
@@ -8,13 +8,13 @@ if (process.env.NODE_ENV === 'production') {
 
 const plugins = [
   new HtmlWebpackPlugin({
-    template: './src/index.html', // Данный html будет использован как шаблон
+    template: './src/index.html',
   }),
-] // Создаем массив плагинов
+]
 
 module.exports = {
   mode,
-  plugins, // Сокращенная запись plugins: plugins в ES6+
+  plugins,
   entry: './src/index.js',
   devtool: 'source-map',
   output: {
@@ -27,8 +27,6 @@ module.exports = {
   },
 
   module: {
-    rules: [
-      { test: /\.(html)$/, use: ['html-loader'] }, // Добавляем загрузчик для html
-    ],
+    rules: [{ test: /\.(html)$/, use: ['html-loader'] }],
   },
 }
