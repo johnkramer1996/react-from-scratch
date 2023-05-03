@@ -123,7 +123,9 @@ function ChildReconciler(shouldTrackSideEffects) {
       }
     }
 
-    if (shouldTrackSideEffects) existingChildren.forEach((child) => deleteChild(returnFiber, child))
+    if (shouldTrackSideEffects) {
+      existingChildren.forEach((child) => deleteChild(returnFiber, child))
+    }
     return resultingFirstChild
   }
 

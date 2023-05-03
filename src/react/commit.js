@@ -103,7 +103,6 @@ function commitMutationEffects() {
       if (current !== null) commitDetachRef(current)
     }
 
-    // ! почему сначало еффекты удаления
     var primaryEffectTag = effectTag & (Placement | Update | Deletion)
     switch (primaryEffectTag) {
       case Placement: {

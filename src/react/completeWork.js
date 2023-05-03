@@ -16,7 +16,7 @@ export function completeUnitOfWork(workInProgress) {
     if (next !== null) return next
 
     if (returnFiber !== null) {
-      // !добавить еффекты файбера в очередь
+      // !добавить еффекты(useEffect, useLayoutEffect) файбера в очередь
       if (returnFiber.firstEffect === null) returnFiber.firstEffect = workInProgress.firstEffect
       if (workInProgress.lastEffect !== null) {
         if (returnFiber.lastEffect !== null) {
@@ -27,6 +27,7 @@ export function completeUnitOfWork(workInProgress) {
 
       // !добавить текущий файбер в очередь
       if (workInProgress.effectTag > PerformedWork) {
+        console.log(workInProgress)
         if (returnFiber.lastEffect !== null) returnFiber.lastEffect.nextEffect = workInProgress
         // ! если нет последнего то и первого
         // ! последний добавиляеться по умолчанию
@@ -110,7 +111,9 @@ function updateHostComponent$1(current, workInProgress, type, newProps, rootCont
 
   workInProgress.updateQueue = updatePayload
 
-  if (updatePayload) markUpdate(workInProgress)
+  if (updatePayload) {
+    markUpdate(workInProgress)
+  }
 }
 
 function updateHostText$1(current, workInProgress, oldText, newText) {
