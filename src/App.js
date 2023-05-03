@@ -65,6 +65,10 @@ class ClassComponent extends Component {
     })
   }
 
+  componentDidUpdate() {
+    console.log('componentDidUpdate')
+  }
+
   componentWillMount() {
     console.log('componentWillMount')
   }

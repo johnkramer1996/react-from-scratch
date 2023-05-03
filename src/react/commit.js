@@ -154,6 +154,11 @@ function commitWork(current, finishedWork) {
       commitHookEffectListUnmount(Layout | HasEffect, finishedWork)
       return
     }
+
+    case ClassComponent: {
+      return
+    }
+
     case HostComponent: {
       var instance = finishedWork.stateNode
 
@@ -268,6 +273,54 @@ function commitLifeCycles(current, finishedWork) {
       return
     }
 
+    case ClassComponent: {
+      var instance = finishedWork.stateNode
+      debugger
+
+      if (finishedWork.effectTag & Update) {
+        if (current === null) {
+          instance.componentDidMount()
+        } else {
+          var prevProps = current.memoizedProps
+          var prevState = current.memoizedState
+
+          instance.componentDidUpdate(prevProps, prevState)
+        }
+      }
+
+      var updateQueue = finishedWork.updateQueue
+
+      if (updateQueue !== null) {
+        commitUpdateQueue(finishedWork, updateQueue, instance)
+      }
+
+      return
+    }
+
+    case HostRoot: {
+      var _updateQueue = finishedWork.updateQueue
+
+      if (_updateQueue !== null) {
+        var _instance = null
+
+        if (finishedWork.child !== null) {
+          switch (finishedWork.child.tag) {
+            case HostComponent:
+              _instance = getPublicInstance(finishedWork.child.stateNode)
+              break
+
+            case ClassComponent:
+              _instance = finishedWork.child.stateNode
+              break
+          }
+        }
+
+        commitUpdateQueue(finishedWork, _updateQueue, _instance)
+      }
+
+      return
+    }
+
     case HostComponent: {
       var _instance2 = finishedWork.stateNode
 
@@ -331,6 +384,23 @@ function commitHookEffectListMount(tag, finishedWork) {
 
       effect = effect.next
     } while (effect !== firstEffect)
+  }
+}
+
+function commitUpdateQueue(finishedWork, finishedQueue, instance) {
+  var effects = finishedQueue.effects
+  finishedQueue.effects = null
+
+  if (effects !== null) {
+    for (var i = 0; i < effects.length; i++) {
+      var effect = effects[i]
+      var callback = effect.callback
+
+      if (callback !== null) {
+        effect.callback = null
+        callCallback(callback, instance)
+      }
+    }
   }
 }
 
