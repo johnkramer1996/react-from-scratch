@@ -359,6 +359,8 @@ function dispatchAction(fiber, queue, action) {
   }
   queue.pending = update
 
+  var alternate = fiber.alternate
+
   if (
     fiber.expirationTime === NoWork &&
     (alternate === null || alternate.expirationTime === NoWork)

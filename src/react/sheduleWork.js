@@ -45,7 +45,6 @@ function performSyncWorkOnRoot(root) {
   var expirationTime = lastExpiredTime !== NoWork ? lastExpiredTime : Sync
 
   flushPassiveEffects()
-
   if (root !== workInProgressRoot || expirationTime !== renderExpirationTime$1) {
     prepareFreshStack(root, expirationTime)
   }
@@ -73,12 +72,12 @@ function workLoopSync() {
   while (workInProgress !== null) workInProgress = performUnitOfWork(workInProgress)
 }
 
-function performUnitOfWork(fiber) {
-  var current = fiber.alternate
-  var next = beginWork(current, fiber, renderExpirationTime$1)
-  fiber.memoizedProps = fiber.pendingProps
-  if (next === null) next = completeUnitOfWork(fiber)
+function performUnitOfWork(workInProgress) {
+  var current = workInProgress.alternate
+  var next = beginWork(current, workInProgress, renderExpirationTime$1)
+  workInProgress.memoizedProps = workInProgress.pendingProps
 
+  if (next === null) next = completeUnitOfWork(workInProgress)
   return next
 }
 

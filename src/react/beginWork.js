@@ -19,7 +19,10 @@ import { cloneUpdateQueue, processUpdateQueue } from './update'
 export function beginWork(current, workInProgress, renderExpirationTime) {
   var updateExpirationTime = workInProgress.expirationTime
 
-  if (false && current !== null) {
+  if (current) {
+  }
+
+  if (current !== null) {
     var oldProps = current.memoizedProps
     var newProps = workInProgress.pendingProps
 
@@ -28,7 +31,6 @@ export function beginWork(current, workInProgress, renderExpirationTime) {
       return bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime)
     }
   }
-
   workInProgress.expirationTime = NoWork
   switch (workInProgress.tag) {
     case IndeterminateComponent: {
@@ -63,9 +65,21 @@ export function beginWork(current, workInProgress, renderExpirationTime) {
         workInProgress,
         workInProgress.type,
         workInProgress.pendingProps,
+        updateExpirationTime,
         renderExpirationTime,
       )
     }
+    case SimpleMemoComponent: {
+      return updateSimpleMemoComponent(
+        current,
+        workInProgress,
+        workInProgress.type,
+        workInProgress.pendingProps,
+        updateExpirationTime,
+        renderExpirationTime,
+      )
+    }
+
     case HostRoot:
       return updateHostRoot(current, workInProgress, renderExpirationTime)
     case HostComponent:
@@ -128,7 +142,14 @@ function updateForwardRef(current, workInProgress, Component, nextProps) {
   return reconcileChildren(current, workInProgress, nextChildren, renderExpirationTime)
 }
 
-function updateMemoComponent(current, workInProgress, Component, nextProps, renderExpirationTime) {
+function updateMemoComponent(
+  current,
+  workInProgress,
+  Component,
+  nextProps,
+  updateExpirationTime,
+  renderExpirationTime,
+) {
   if (current === null) {
     var type = Component.type
 
@@ -145,6 +166,7 @@ function updateMemoComponent(current, workInProgress, Component, nextProps, rend
         workInProgress,
         type,
         nextProps,
+        updateExpirationTime,
         renderExpirationTime,
       )
     }
@@ -178,7 +200,14 @@ function updateMemoComponent(current, workInProgress, Component, nextProps, rend
   return newChild
 }
 
-function updateSimpleMemoComponent(current, workInProgress, Component, nextProps) {
+function updateSimpleMemoComponent(
+  current,
+  workInProgress,
+  Component,
+  nextProps,
+  updateExpirationTime,
+  renderExpirationTime,
+) {
   if (current !== null) {
     var prevProps = current.memoizedProps
 
@@ -263,10 +292,11 @@ function updateHostRoot(current, workInProgress, renderExpirationTime) {
 }
 
 function bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime) {
-  return cloneChildFibers(current, workInProgress, renderExpirationTime)
+  if (workInProgress.childExpirationTime < renderExpirationTime) return null
+  return cloneChildFibers(current, workInProgress)
 }
 
-function cloneChildFibers(current, workInProgress, renderExpirationTime) {
+function cloneChildFibers(current, workInProgress) {
   if (workInProgress.child === null) return
 
   var currentChild = workInProgress.child

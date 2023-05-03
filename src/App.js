@@ -1,7 +1,6 @@
-import { Memo } from './components/Memo'
 import { Parent } from './components/Parent'
 import { ThemeContext } from './components/ThemeContext'
-import { createElement } from './react/React'
+import { createElement, memo } from './react/React'
 import { useLayoutEffect, useMemo, useRef, useState } from './react/renderWithHooks'
 
 export const App = () => {
@@ -12,8 +11,9 @@ export const App = () => {
     { id: 4, name: 'name 4' },
     { id: 5, name: 'name 5' },
   ])
-  const [state2, setState2] = useState(0)
-  const prevValue = useRef(state2)
+  const [count, setCount] = useState(0)
+  const [stateMemo, setmemo] = useState(0)
+  const prevValue = useRef(count)
 
   return createElement(
     'div',
@@ -24,18 +24,20 @@ export const App = () => {
         {
           key: i.id,
           onClick: () => {
-            setState2((prev) => prev + 1)
-            prevValue.current = state2
+            setCount((p) => p + 1)
+            prevValue.current = count
           },
         },
         i.name,
       ),
     ),
-    createElement(Memo, null, 1),
-    createElement(
-      ThemeContext.Provider,
-      { value: state2 },
-      createElement('div', null, createElement(Parent, {}, state2)),
-    ),
+    createElement('button', { onClick: () => setCount((p) => p + 1) }, count),
+    createElement('button', { onClick: () => setmemo((p) => p + 1) }, stateMemo),
+    createElement(Memo, null, stateMemo),
   )
 }
+
+export const Memo = memo(function memeFunc() {
+  console.log('memo update')
+  return 'memo'
+})

@@ -95,7 +95,6 @@ function ChildReconciler(shouldTrackSideEffects) {
       } else {
         nextOldFiber = oldFiber.sibling
       }
-
       var newFiber = updateSlot(returnFiber, oldFiber, newChildren[newIdx], expirationTime)
 
       if (newFiber === null) {
@@ -238,7 +237,7 @@ function ChildReconciler(shouldTrackSideEffects) {
               )
             }
 
-            return updateElement(returnFiber, oldFiber, newChild)
+            return updateElement(returnFiber, oldFiber, newChild, expirationTime)
           } else {
             return null
           }
@@ -343,7 +342,7 @@ function ChildReconciler(shouldTrackSideEffects) {
   }
 
   function updateElement(returnFiber, current, element, expirationTime) {
-    if (current === null || current.type !== element.type) {
+    if (current === null || current.elementType !== element.type) {
       var created = createFiberFromElement(element, returnFiber.mode, expirationTime)
       created.ref = element.ref
       created.return = returnFiber

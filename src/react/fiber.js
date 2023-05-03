@@ -48,8 +48,9 @@ export function createWorkInProgress(current, pendingProps) {
     workInProgress.lastEffect = null
   }
 
+  workInProgress.childExpirationTime = current.childExpirationTime
+  workInProgress.expirationTime = current.expirationTime
   workInProgress.child = current.child
-  workInProgress.memoizedProps = current.memoizedProps
   workInProgress.memoizedState = current.memoizedState
   workInProgress.updateQueue = current.updateQueue
 
@@ -119,6 +120,7 @@ export function createFiberFromTypeAndProps(type, key, pendingProps, mode, expir
   }
 
   var fiber = new FiberNode(fiberTag, pendingProps, key, mode)
+  fiber.elementType = type
   fiber.type = type
   fiber.expirationTime = expirationTime
   return fiber
