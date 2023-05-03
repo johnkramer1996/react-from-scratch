@@ -6,24 +6,6 @@ import {
   createWorkInProgress,
 } from './fiber'
 
-/**
- * reconcileChildFibers
- * reconcileChildrenArray
- * reconcileSingleTextNode
- * reconcileSingleElement
- * mapRemainingChildren
- * deleteRemainingChildren
- * updateSlot
- * updateFromMap
- * deleteChild
- * useFiber
- * placeChild
- * placeSingleChild
- * updateTextNode
- * updateElement
- * createChild
- */
-
 export function reconcileChildren(current, workInProgress, nextChildren, renderExpirationTime) {
   return (workInProgress.child =
     current === null
@@ -133,6 +115,7 @@ function ChildReconciler(shouldTrackSideEffects) {
             existingChildren.delete(key)
           }
         }
+
         lastPlacedIndex = placeChild(_newFiber2, lastPlacedIndex, newIdx)
         if (previousNewFiber === null) resultingFirstChild = _newFiber2
         else previousNewFiber.sibling = _newFiber2

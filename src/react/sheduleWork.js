@@ -3,16 +3,6 @@ import { commitRoot, flushPassiveEffects } from './commit'
 import { completeUnitOfWork } from './completeWork'
 import { createWorkInProgress } from './fiber'
 
-/**
- * sheduleWork
- * performSyncWorkOnRoot
- * prepareFreshStack
- * workLoopSync
- * performUnitOfWork
- * finishSyncRender
- * getRoot
- */
-
 export function sheduleWork(fiber, expirationTime) {
   var root = markUpdateTimeFromFiberToRoot(fiber, expirationTime)
   if (expirationTime === Sync) {

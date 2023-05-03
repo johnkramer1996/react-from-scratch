@@ -1,9 +1,3 @@
-/**
- * createElement
- * ReactElement
- * hasValidKey
- * hasValidRef
- */
 export var hasSymbol = typeof Symbol === 'function' && Symbol.for
 export var REACT_ELEMENT_TYPE = hasSymbol ? Symbol.for('react.element') : 0xeac7
 export var REACT_PROVIDER_TYPE = Symbol.for('react.provider')

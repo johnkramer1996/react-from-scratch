@@ -8,14 +8,6 @@ import { reconcileChildren } from './reconcileChildren'
 import { readContext, renderWithHooks } from './renderWithHooks'
 import { cloneUpdateQueue, processUpdateQueue } from './update'
 
-/**
- * beginWork
- * updateHostComponent
- * updateHostText
- * updateHostRoot
- * bailoutOnAlreadyFinishedWork
- * cloneChildFibers
- */
 export function beginWork(current, workInProgress, renderExpirationTime) {
   var updateExpirationTime = workInProgress.expirationTime
 

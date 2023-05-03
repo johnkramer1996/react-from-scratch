@@ -2,12 +2,6 @@ import { createFiberRoot } from './fiber'
 import { flushSyncCallbackQueue, sheduleWork } from './sheduleWork'
 import { createUpdate, enqueueUpdate } from './update'
 
-/**
- * render
- * unbatchedUpdates
- * updateContainer
- */
-
 const rootContainerInstance = { current: null }
 
 export function render(children, container) {

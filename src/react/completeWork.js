@@ -1,12 +1,3 @@
-/**
- * completeUnitOfWork
- * completeWork
- * markUpdate
- * markRef$1
- * updateHostComponent$1
- * updateHostText$1
- */
-
 import { getRootHostContainer } from './ReactDom'
 import {
   appendAllChildren,

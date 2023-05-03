@@ -1,15 +1,3 @@
-/**
- * createFiberRoot
- * createHostRootFiber
- * createWorkInProgress
- * createFiberFromText
- * createFiberFromElement
- * createFiberFromTypeAndProps
- * createFiber
- * FiberRootNode
- * FiberNode
- */
-
 import {
   REACT_CONTEXT_TYPE,
   REACT_FORWARD_REF_TYPE,
