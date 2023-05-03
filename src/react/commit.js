@@ -11,14 +11,18 @@ import { ensureRootIsScheduled, flushSyncCallbackQueue } from './sheduleWork'
 
 export function commitRoot(root) {
   var finishedWork = root.finishedWork
+  var expirationTime = root.finishedExpirationTime
   if (finishedWork === null) return null
 
   root.finishedWork = null
+  root.finishedExpirationTime = NoWork
+  root.callbackExpirationTime = NoWork
   root.callbackNode = null
 
   if (root === workInProgressRoot) {
     workInProgressRoot = null
     workInProgress = null
+    renderExpirationTime$1 = NoWork
   }
 
   var firstEffect
@@ -44,9 +48,9 @@ export function commitRoot(root) {
     nextEffect = firstEffect
     commitBeforeMutationEffects()
     nextEffect = firstEffect
-    commitMutationEffects()
+    commitMutationEffects(expirationTime)
     nextEffect = firstEffect
-    commitLayoutEffects()
+    commitLayoutEffects(expirationTime)
 
     root.current = finishedWork
     nextEffect = null
@@ -365,7 +369,7 @@ function commitResetTextContent(current) {
   resetTextContent(current.stateNode)
 }
 
-function flushPassiveEffects() {
+export function flushPassiveEffects() {
   if (rootWithPendingPassiveEffects === null) return false
 
   var root = rootWithPendingPassiveEffects

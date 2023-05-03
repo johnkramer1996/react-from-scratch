@@ -1,6 +1,14 @@
 import { sheduleWork } from './sheduleWork'
 
-export function renderWithHooks(current, workInProgress, Component, props, secondArg) {
+export function renderWithHooks(
+  current,
+  workInProgress,
+  Component,
+  props,
+  secondArg,
+  nextRenderExpirationTime,
+) {
+  renderExpirationTime = nextRenderExpirationTime
   currentlyRenderingFiber$1 = workInProgress
   workInProgress.memoizedState = null
   workInProgress.updateQueue = null
@@ -10,6 +18,8 @@ export function renderWithHooks(current, workInProgress, Component, props, secon
       ? HooksDispatcherOnUpdateInDEV
       : HooksDispatcherOnMountInDEV
   var children = Component(props, secondArg)
+
+  renderExpirationTime = NoWork
   currentlyRenderingFiber$1 = null
   currentHook = null
   workInProgressHook = null
@@ -337,7 +347,9 @@ function basicStateReducer(state, action) {
 }
 
 function dispatchAction(fiber, queue, action) {
-  var update = { action, eagerReducer: null, eagerState: null, next: null }
+  var expirationTime = Sync
+
+  var update = { expirationTime, action, eagerReducer: null, eagerState: null, next: null }
   var pending = queue.pending
 
   if (pending === null) update.next = update
@@ -347,15 +359,24 @@ function dispatchAction(fiber, queue, action) {
   }
   queue.pending = update
 
-  //var lastRenderedReducer = queue.lastRenderedReducer
-  //if (lastRenderedReducer !== null) {
-  //  var currentState = queue.lastRenderedState
-  //  var eagerState = lastRenderedReducer(currentState, action)
-  //  update.eagerReducer = lastRenderedReducer
-  //  update.eagerState = eagerState
-  //  if (Object.is(eagerState, currentState)) return
-  //}
-  sheduleWork(fiber)
+  if (
+    fiber.expirationTime === NoWork &&
+    (alternate === null || alternate.expirationTime === NoWork)
+  ) {
+    var lastRenderedReducer = queue.lastRenderedReducer
+
+    if (lastRenderedReducer !== null) {
+      var currentState = queue.lastRenderedState
+      var eagerState = lastRenderedReducer(currentState, action)
+
+      update.eagerReducer = lastRenderedReducer
+      update.eagerState = eagerState
+
+      if (Object.is(eagerState, currentState)) return
+    }
+  }
+
+  sheduleWork(fiber, expirationTime)
 }
 
 function pushEffect(tag, create, destroy, deps) {

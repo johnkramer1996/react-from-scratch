@@ -60,24 +60,27 @@ export function createWorkInProgress(current, pendingProps) {
   return workInProgress
 }
 
-export function createFiberFromText(content, mode) {
-  return new FiberNode(HostText, content, null, mode)
+export function createFiberFromText(content, mode, expirationTime) {
+  var fiber = new FiberNode(HostText, content, null, mode)
+  fiber.expirationTime = expirationTime
+  return fiber
 }
 
-export function createFiberFromElement(element, mode) {
+export function createFiberFromElement(element, mode, expirationTime) {
   var type = element.type
   var key = element.key
   var pendingProps = element.props
 
-  return createFiberFromTypeAndProps(type, key, pendingProps, mode)
+  return createFiberFromTypeAndProps(type, key, pendingProps, mode, expirationTime)
 }
 
-export function createFiberFromFragment(elements, mode, key) {
+export function createFiberFromFragment(elements, mode, expirationTime, key) {
   var fiber = createFiber(Fragment, elements, key, mode)
+  fiber.expirationTime = expirationTime
   return fiber
 }
 
-export function createFiberFromTypeAndProps(type, key, pendingProps, mode) {
+export function createFiberFromTypeAndProps(type, key, pendingProps, mode, expirationTime) {
   var fiberTag = IndeterminateComponent
 
   if (typeof type === 'function') {
@@ -89,7 +92,7 @@ export function createFiberFromTypeAndProps(type, key, pendingProps, mode) {
   } else {
     getTag: switch (type) {
       case REACT_FRAGMENT_TYPE:
-        return createFiberFromFragment(pendingProps.children, mode, key)
+        return createFiberFromFragment(pendingProps.children, mode, expirationTime, key)
       default: {
         if (typeof type === 'object' && type !== null) {
           switch (type.$$typeof) {
@@ -117,6 +120,7 @@ export function createFiberFromTypeAndProps(type, key, pendingProps, mode) {
 
   var fiber = new FiberNode(fiberTag, pendingProps, key, mode)
   fiber.type = type
+  fiber.expirationTime = expirationTime
   return fiber
 }
 
@@ -144,8 +148,10 @@ function FiberRootNode(containerInfo) {
   this.containerInfo = containerInfo
   this.context = null
   this.pendingContext = null
+  this.finishedExpirationTime = NoWork
   this.finishedWork = null
   this.callbackNode = null
+  this.lastExpiredTime = NoWork
 }
 
 function FiberNode(tag, pendingProps, key, mode) {

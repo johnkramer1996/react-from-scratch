@@ -1,5 +1,5 @@
 import { beginWork } from './beginWork'
-import { commitRoot } from './commit'
+import { commitRoot, flushPassiveEffects } from './commit'
 import { completeUnitOfWork } from './completeWork'
 import { createWorkInProgress } from './fiber'
 
@@ -13,16 +13,20 @@ import { createWorkInProgress } from './fiber'
  * getRoot
  */
 
-export function sheduleWork(fiber) {
-  var root = markUpdateTimeFromFiberToRoot(fiber)
-  if (
-    (executionContext & LegacyUnbatchedContext) !== NoContext &&
-    (executionContext & (RenderContext | CommitContext)) === NoContext
-  ) {
-    performSyncWorkOnRoot(root)
+export function sheduleWork(fiber, expirationTime) {
+  var root = markUpdateTimeFromFiberToRoot(fiber, expirationTime)
+  if (expirationTime === Sync) {
+    if (
+      (executionContext & LegacyUnbatchedContext) !== NoContext &&
+      (executionContext & (RenderContext | CommitContext)) === NoContext
+    ) {
+      performSyncWorkOnRoot(root)
+    } else {
+      ensureRootIsScheduled(root)
+      if (executionContext === NoContext) flushSyncCallbackQueue()
+    }
   } else {
     ensureRootIsScheduled(root)
-    if (executionContext === NoContext) flushSyncCallbackQueue()
   }
 }
 
@@ -37,7 +41,14 @@ export function ensureRootIsScheduled(root, reset = false) {
 }
 
 function performSyncWorkOnRoot(root) {
-  if (root !== workInProgressRoot) prepareFreshStack(root)
+  var lastExpiredTime = root.lastExpiredTime
+  var expirationTime = lastExpiredTime !== NoWork ? lastExpiredTime : Sync
+
+  flushPassiveEffects()
+
+  if (root !== workInProgressRoot || expirationTime !== renderExpirationTime$1) {
+    prepareFreshStack(root, expirationTime)
+  }
 
   if (workInProgress !== null) {
     var prevExecutionContext = executionContext
@@ -45,15 +56,17 @@ function performSyncWorkOnRoot(root) {
     workLoopSync()
     executionContext = prevExecutionContext
     root.finishedWork = root.current.alternate
+    root.finishedExpirationTime = expirationTime
     finishSyncRender(root)
   }
   return null
 }
 
-function prepareFreshStack(root) {
+function prepareFreshStack(root, expirationTime) {
   root.finishedWork = null
   workInProgressRoot = root
   workInProgress = createWorkInProgress(root.current, root.current.pendingProps)
+  renderExpirationTime$1 = expirationTime
 }
 
 function workLoopSync() {
@@ -62,9 +75,10 @@ function workLoopSync() {
 
 function performUnitOfWork(fiber) {
   var current = fiber.alternate
-  var next = beginWork(current, fiber)
+  var next = beginWork(current, fiber, renderExpirationTime$1)
   fiber.memoizedProps = fiber.pendingProps
   if (next === null) next = completeUnitOfWork(fiber)
+
   return next
 }
 

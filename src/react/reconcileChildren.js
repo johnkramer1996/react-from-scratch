@@ -24,36 +24,46 @@ import {
  * createChild
  */
 
-export function reconcileChildren(current, workInProgress, nextChildren) {
+export function reconcileChildren(current, workInProgress, nextChildren, renderExpirationTime) {
   return (workInProgress.child =
     current === null
-      ? mountChildFibers(workInProgress, null, nextChildren)
-      : reconcileChildFibers(workInProgress, current.child, nextChildren))
+      ? mountChildFibers(workInProgress, null, nextChildren, renderExpirationTime)
+      : reconcileChildFibers(workInProgress, current.child, nextChildren, renderExpirationTime))
 }
 
 var reconcileChildFibers = ChildReconciler(true)
 var mountChildFibers = ChildReconciler(false)
 function ChildReconciler(shouldTrackSideEffects) {
-  function reconcileChildFibers(returnFiber, currentFirstChild, newChild) {
+  function reconcileChildFibers(returnFiber, currentFirstChild, newChild, expirationTime) {
     if (typeof newChild === 'object' && newChild !== null) {
       switch (newChild.$$typeof) {
         case REACT_ELEMENT_TYPE:
-          var newFiber = reconcileSingleElement(returnFiber, currentFirstChild, newChild)
+          var newFiber = reconcileSingleElement(
+            returnFiber,
+            currentFirstChild,
+            newChild,
+            expirationTime,
+          )
           return placeSingleChild(newFiber)
       }
     }
     if (typeof newChild === 'string' || typeof newChild === 'number') {
-      var newFiber = reconcileSingleTextNode(returnFiber, currentFirstChild, newChild)
+      var newFiber = reconcileSingleTextNode(
+        returnFiber,
+        currentFirstChild,
+        newChild,
+        expirationTime,
+      )
       return placeSingleChild(newFiber)
     }
 
     if (Array.isArray(newChild))
-      return reconcileChildrenArray(returnFiber, currentFirstChild, newChild)
+      return reconcileChildrenArray(returnFiber, currentFirstChild, newChild, expirationTime)
 
     return deleteRemainingChildren(returnFiber, currentFirstChild)
   }
 
-  function reconcileChildrenArray(returnFiber, currentFirstChild, newChildren) {
+  function reconcileChildrenArray(returnFiber, currentFirstChild, newChildren, expirationTime) {
     var resultingFirstChild = null
     let previousNewFiber = null
     var oldFiber = currentFirstChild
@@ -66,7 +76,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     // ! 3 update from map
     if (oldFiber === null) {
       for (; newIdx < newChildren.length; newIdx++) {
-        var _newFiber = createChild(returnFiber, newChildren[newIdx])
+        var _newFiber = createChild(returnFiber, newChildren[newIdx], expirationTime)
 
         placeChild(_newFiber, lastPlacedIndex, newIdx)
 
@@ -86,7 +96,7 @@ function ChildReconciler(shouldTrackSideEffects) {
         nextOldFiber = oldFiber.sibling
       }
 
-      var newFiber = updateSlot(returnFiber, oldFiber, newChildren[newIdx])
+      var newFiber = updateSlot(returnFiber, oldFiber, newChildren[newIdx], expirationTime)
 
       if (newFiber === null) {
         oldFiber = oldFiber || nextOldFiber
@@ -95,7 +105,7 @@ function ChildReconciler(shouldTrackSideEffects) {
       if (shouldTrackSideEffects) {
         if (oldFiber && newFiber.alternate === null) deleteChild(returnFiber, oldFiber)
       }
-      lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx)
+      lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx, expirationTime)
       if (previousNewFiber === null) resultingFirstChild = newFiber
       else previousNewFiber.sibling = newFiber
       previousNewFiber = newFiber
@@ -109,7 +119,13 @@ function ChildReconciler(shouldTrackSideEffects) {
 
     var existingChildren = mapRemainingChildren(oldFiber)
     for (; newIdx < newChildren.length; newIdx++) {
-      var _newFiber2 = updateFromMap(existingChildren, returnFiber, newIdx, newChildren[newIdx])
+      var _newFiber2 = updateFromMap(
+        existingChildren,
+        returnFiber,
+        newIdx,
+        newChildren[newIdx],
+        expirationTime,
+      )
 
       if (_newFiber2 !== null) {
         if (shouldTrackSideEffects) {
@@ -129,9 +145,9 @@ function ChildReconciler(shouldTrackSideEffects) {
     return resultingFirstChild
   }
 
-  function reconcileSingleTextNode(returnFiber, currentFirstChild, textContent) {
+  function reconcileSingleTextNode(returnFiber, currentFirstChild, textContent, expirationTime) {
     if (currentFirstChild === null || currentFirstChild.tag !== HostText) {
-      var created = createFiberFromText(textContent, returnFiber.mode)
+      var created = createFiberFromText(textContent, returnFiber.mode, expirationTime)
       created.return = returnFiber
       return created
     }
@@ -141,18 +157,23 @@ function ChildReconciler(shouldTrackSideEffects) {
     return existing
   }
 
-  function reconcileSingleElement(returnFiber, currentFirstChild, element) {
+  function reconcileSingleElement(returnFiber, currentFirstChild, element, expirationTime) {
     var key = element.key
     var child = currentFirstChild
 
     if (child === null) {
       if (element.type === REACT_FRAGMENT_TYPE) {
-        var created = createFiberFromFragment(element.props.children, returnFiber.mode, element.key)
+        var created = createFiberFromFragment(
+          element.props.children,
+          returnFiber.mode,
+          element.key,
+          expirationTime,
+        )
         created.return = returnFiber
         return created
       }
 
-      var created = createFiberFromElement(element, returnFiber.mode)
+      var created = createFiberFromElement(element, returnFiber.mode, expirationTime)
       created.ref = element.ref
       created.return = returnFiber
       return created
@@ -198,7 +219,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     return null
   }
 
-  function updateSlot(returnFiber, oldFiber, newChild) {
+  function updateSlot(returnFiber, oldFiber, newChild, expirationTime) {
     var key = oldFiber !== null ? oldFiber.key : null
 
     if (typeof newChild === 'string' || typeof newChild === 'number')
@@ -208,7 +229,13 @@ function ChildReconciler(shouldTrackSideEffects) {
         case REACT_ELEMENT_TYPE: {
           if (newChild.key === key) {
             if (newChild.type === REACT_FRAGMENT_TYPE) {
-              return updateFragment(returnFiber, oldFiber, newChild.props.children, key)
+              return updateFragment(
+                returnFiber,
+                oldFiber,
+                newChild.props.children,
+                expirationTime,
+                key,
+              )
             }
 
             return updateElement(returnFiber, oldFiber, newChild)
@@ -223,13 +250,13 @@ function ChildReconciler(shouldTrackSideEffects) {
           return null
         }
 
-        return updateFragment(returnFiber, oldFiber, newChild, null)
+        return updateFragment(returnFiber, oldFiber, newChild, expirationTime, null)
       }
     }
     return null
   }
 
-  function updateFromMap(existingChildren, returnFiber, newIdx, newChild) {
+  function updateFromMap(existingChildren, returnFiber, newIdx, newChild, expirationTime) {
     if (typeof newChild === 'string' || typeof newChild === 'number') {
       var matchedFiber = existingChildren.get(newIdx) || null
       return updateTextNode(returnFiber, matchedFiber, newChild)
@@ -240,11 +267,17 @@ function ChildReconciler(shouldTrackSideEffects) {
           var key = newChild.key === null ? newIdx : newChild.key
 
           if (newChild.type === REACT_FRAGMENT_TYPE) {
-            return updateFragment(returnFiber, _matchedFiber, newChild.props.children, newChild.key)
+            return updateFragment(
+              returnFiber,
+              _matchedFiber,
+              newChild.props.children,
+              expirationTime,
+              newChild.key,
+            )
           }
 
           var _matchedFiber = existingChildren.get(key) || null
-          return updateElement(returnFiber, _matchedFiber, newChild)
+          return updateElement(returnFiber, _matchedFiber, newChild, expirationTime)
         }
       }
 
@@ -298,9 +331,9 @@ function ChildReconciler(shouldTrackSideEffects) {
     return newFiber
   }
 
-  function updateTextNode(returnFiber, current, textContent) {
+  function updateTextNode(returnFiber, current, textContent, expirationTime) {
     if (current === null || current.tag !== HostText) {
-      var created = createFiberFromText(textContent, returnFiber.mode)
+      var created = createFiberFromText(textContent, returnFiber.mode, expirationTime)
       created.return = returnFiber
       return created
     }
@@ -309,9 +342,9 @@ function ChildReconciler(shouldTrackSideEffects) {
     return existing
   }
 
-  function updateElement(returnFiber, current, element) {
+  function updateElement(returnFiber, current, element, expirationTime) {
     if (current === null || current.type !== element.type) {
-      var created = createFiberFromElement(element, returnFiber.mode)
+      var created = createFiberFromElement(element, returnFiber.mode, expirationTime)
       created.ref = element.ref
       created.return = returnFiber
       return created
@@ -323,7 +356,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     return existing
   }
 
-  function updateFragment(returnFiber, current, fragment, key) {
+  function updateFragment(returnFiber, current, fragment, expirationTime, key) {
     if (current === null || current.tag !== Fragment) {
       var created = createFiberFromFragment(fragment, returnFiber.mode, expirationTime, key)
       created.return = returnFiber
@@ -334,7 +367,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     return existing
   }
 
-  function createChild(returnFiber, newChild) {
+  function createChild(returnFiber, newChild, expirationTime) {
     if (typeof newChild === 'string' || typeof newChild === 'number') {
       var created = createFiberFromText(newChild, returnFiber.mode)
       created.return = returnFiber
@@ -343,7 +376,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     if (typeof newChild === 'object' && newChild !== null) {
       switch (newChild.$$typeof) {
         case REACT_ELEMENT_TYPE: {
-          var _created = createFiberFromElement(newChild, returnFiber.mode)
+          var _created = createFiberFromElement(newChild, returnFiber.mode, expirationTime)
           _created.ref = newChild.ref
           _created.return = returnFiber
           return _created
@@ -351,7 +384,7 @@ function ChildReconciler(shouldTrackSideEffects) {
       }
 
       if (Array.isArray(newChild)) {
-        var _created3 = createFiberFromFragment(newChild, returnFiber.mode, null)
+        var _created3 = createFiberFromFragment(newChild, returnFiber.mode, expirationTime, null)
 
         _created3.return = returnFiber
         return _created3

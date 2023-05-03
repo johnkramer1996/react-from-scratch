@@ -55,79 +55,6 @@ export function enqueueUpdate(fiber, update) {
   sharedQueue.pending = update
 }
 
-export function getStateFromUpdate(workInProgress, queue, update, prevState, nextProps, instance) {
-  switch (update.tag) {
-    case ReplaceState: {
-      var payload = update.payload
-
-      if (typeof payload === 'function') {
-        // Updater export function
-        {
-          enterDisallowedContextReadInDEV()
-
-          if (workInProgress.mode & StrictMode) {
-            payload.call(instance, prevState, nextProps)
-          }
-        }
-
-        var nextState = payload.call(instance, prevState, nextProps)
-
-        {
-          exitDisallowedContextReadInDEV()
-        }
-
-        return nextState
-      } // State object
-
-      return payload
-    }
-
-    case CaptureUpdate: {
-      workInProgress.effectTag = (workInProgress.effectTag & ~ShouldCapture) | DidCapture
-    }
-    // Intentional fallthrough
-
-    case UpdateState: {
-      var _payload = update.payload
-      var partialState
-
-      if (typeof _payload === 'function') {
-        // Updater export function
-        {
-          enterDisallowedContextReadInDEV()
-
-          if (workInProgress.mode & StrictMode) {
-            _payload.call(instance, prevState, nextProps)
-          }
-        }
-
-        partialState = _payload.call(instance, prevState, nextProps)
-
-        {
-          exitDisallowedContextReadInDEV()
-        }
-      } else {
-        // Partial state object
-        partialState = _payload
-      }
-
-      if (partialState === null || partialState === undefined) {
-        // Null and undefined are treated as no-ops.
-        return prevState
-      } // Merge the partial state and the previous state.
-
-      return Object.assign({}, prevState, partialState)
-    }
-
-    case ForceUpdate: {
-      hasForceUpdate = true
-      return prevState
-    }
-  }
-
-  return prevState
-}
-
 export function processUpdateQueue(workInProgress, props, instance, renderExpirationTime) {
   // This is always non-null on a ClassComponent or HostRoot
   var queue = workInProgress.updateQueue
@@ -212,4 +139,77 @@ export function processUpdateQueue(workInProgress, props, instance, renderExpira
   {
     currentlyProcessingQueue = null
   }
+}
+
+export function getStateFromUpdate(workInProgress, queue, update, prevState, nextProps, instance) {
+  switch (update.tag) {
+    case ReplaceState: {
+      var payload = update.payload
+
+      if (typeof payload === 'function') {
+        // Updater export function
+        {
+          enterDisallowedContextReadInDEV()
+
+          if (workInProgress.mode & StrictMode) {
+            payload.call(instance, prevState, nextProps)
+          }
+        }
+
+        var nextState = payload.call(instance, prevState, nextProps)
+
+        {
+          exitDisallowedContextReadInDEV()
+        }
+
+        return nextState
+      } // State object
+
+      return payload
+    }
+
+    case CaptureUpdate: {
+      workInProgress.effectTag = (workInProgress.effectTag & ~ShouldCapture) | DidCapture
+    }
+    // Intentional fallthrough
+
+    case UpdateState: {
+      var _payload = update.payload
+      var partialState
+
+      if (typeof _payload === 'function') {
+        // Updater export function
+        {
+          enterDisallowedContextReadInDEV()
+
+          if (workInProgress.mode & StrictMode) {
+            _payload.call(instance, prevState, nextProps)
+          }
+        }
+
+        partialState = _payload.call(instance, prevState, nextProps)
+
+        {
+          exitDisallowedContextReadInDEV()
+        }
+      } else {
+        // Partial state object
+        partialState = _payload
+      }
+
+      if (partialState === null || partialState === undefined) {
+        // Null and undefined are treated as no-ops.
+        return prevState
+      } // Merge the partial state and the previous state.
+
+      return Object.assign({}, prevState, partialState)
+    }
+
+    case ForceUpdate: {
+      hasForceUpdate = true
+      return prevState
+    }
+  }
+
+  return prevState
 }

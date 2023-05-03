@@ -94,6 +94,7 @@ window.executionContext = NoContext
 
 window.workInProgressRoot = null
 window.workInProgress = null
+window.renderExpirationTime$1 = NoWork
 
 window.globalMostRecentFallbackTime = 0
 window.FALLBACK_THROTTLE_MS = 500
@@ -110,9 +111,6 @@ window.rootsWithPendingDiscreteUpdates = null
 window.spawnedWorkDuringRender = null
 
 window.currentEventTime = NoWork
-
-let currentRoot = null
-let deletions = null
 
 window.LegacyRoot = 0
 window.BlockingRoot = 1
