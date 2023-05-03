@@ -1,5 +1,11 @@
 import { shallowEqual } from './React'
 import {
+  constructClassInstance,
+  finishClassComponent,
+  mountClassInstance,
+  updateClassInstance,
+} from './classComponent'
+import {
   createFiberFromTypeAndProps,
   createWorkInProgress,
   isSimpleFunctionComponent,
@@ -42,6 +48,16 @@ export function beginWork(current, workInProgress, renderExpirationTime) {
         renderExpirationTime,
       )
     }
+    case ClassComponent: {
+      return updateClassComponent(
+        current,
+        workInProgress,
+        workInProgress.type,
+        workInProgress.pendingProps,
+        renderExpirationTime,
+      )
+    }
+
     case ForwardRef: {
       return updateForwardRef(
         current,
@@ -89,14 +105,21 @@ export function beginWork(current, workInProgress, renderExpirationTime) {
 }
 
 function mountIndeterminateComponent(current, workInProgress, Component, renderExpirationTime) {
-  workInProgress.tag = FunctionComponent
-  return updateFunctionComponent(
+  var props = workInProgress.pendingProps
+  const nextChildren = renderWithHooks(
     current,
     workInProgress,
     Component,
-    workInProgress.pendingProps,
+    props,
+    null,
     renderExpirationTime,
   )
+
+  workInProgress.tag = FunctionComponent
+  workInProgress.effectTag |= PerformedWork
+
+  reconcileChildren(current, workInProgress, nextChildren, renderExpirationTime)
+  return workInProgress.child
 }
 
 function updateFunctionComponent(
@@ -118,6 +141,42 @@ function updateFunctionComponent(
   workInProgress.effectTag |= PerformedWork
   reconcileChildren(current, workInProgress, nextChildren, renderExpirationTime)
   return workInProgress.child
+}
+
+function updateClassComponent(current, workInProgress, Component, nextProps, renderExpirationTime) {
+  var instance = workInProgress.stateNode
+  var shouldUpdate
+  var hasContext = false
+
+  if (instance === null) {
+    if (current !== null) {
+      current.alternate = null
+      workInProgress.alternate = null
+      workInProgress.effectTag |= Placement
+    }
+    constructClassInstance(workInProgress, Component, nextProps)
+    mountClassInstance(workInProgress, Component, nextProps, renderExpirationTime)
+    shouldUpdate = true
+  } else {
+    shouldUpdate = updateClassInstance(
+      current,
+      workInProgress,
+      Component,
+      nextProps,
+      renderExpirationTime,
+    )
+  }
+
+  var nextUnitOfWork = finishClassComponent(
+    current,
+    workInProgress,
+    Component,
+    shouldUpdate,
+    hasContext,
+    renderExpirationTime,
+  )
+
+  return nextUnitOfWork
 }
 
 function updateForwardRef(current, workInProgress, Component, nextProps) {

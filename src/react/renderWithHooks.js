@@ -358,7 +358,6 @@ function dispatchAction(fiber, queue, action) {
     pending.next = update
   }
   queue.pending = update
-
   var alternate = fiber.alternate
 
   if (

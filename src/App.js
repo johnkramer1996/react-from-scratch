@@ -1,6 +1,9 @@
 import { ThemeContext } from './components/ThemeContext'
 import { createElement, memo } from './react/React'
+import { Component } from './react/ReactComponent'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from './react/renderWithHooks'
+
+// ! todo prepareToReadContext
 
 export const App = () => {
   const [state, setState] = useState([
@@ -12,9 +15,16 @@ export const App = () => {
   ])
   const [count, setCount] = useState(0)
 
-  // useEffect(() => {
-  //   console.log('2')
-  // })
+  useLayoutEffect(() => {
+    console.log('2')
+  })
+
+  return createElement(
+    'div',
+    null,
+    createElement('button', { onClick: () => setCount((p) => p + 1) }, 'click'),
+    createElement(ClassComponent),
+  )
 
   return createElement(
     'div',
@@ -37,7 +47,12 @@ export const App = () => {
   )
 }
 
-export const Memo = memo(function memeFunc() {
-  console.log('memo update')
-  return 'memo'
-})
+class ClassComponent extends Component {
+  componentWillMount() {
+    console.log('first')
+  }
+
+  render() {
+    return createElement('div', null, 123)
+  }
+}

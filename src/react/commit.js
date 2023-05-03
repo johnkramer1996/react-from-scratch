@@ -247,7 +247,6 @@ function unmountHostComponents(current) {
 function commitLayoutEffects() {
   while (nextEffect !== null) {
     var effectTag = nextEffect.effectTag
-
     if (effectTag & (Update | Callback)) {
       var current = nextEffect.alternate
       commitLifeCycles(current, nextEffect)

@@ -15,8 +15,11 @@ export function completeUnitOfWork(workInProgress) {
     var next = completeWork(current, workInProgress)
     if (next !== null) return next
 
+    if (workInProgress.tag === 0) {
+      console.log(workInProgress.effectTag)
+    }
     if (returnFiber !== null) {
-      // !добавить еффекты(useEffect, useLayoutEffect) файбера в очередь
+      // !добавить еффекты детей родителю до корня  в очередь
       if (returnFiber.firstEffect === null) returnFiber.firstEffect = workInProgress.firstEffect
       if (workInProgress.lastEffect !== null) {
         if (returnFiber.lastEffect !== null) {
@@ -27,7 +30,6 @@ export function completeUnitOfWork(workInProgress) {
 
       // !добавить текущий файбер в очередь
       if (workInProgress.effectTag > PerformedWork) {
-        console.log(workInProgress)
         if (returnFiber.lastEffect !== null) returnFiber.lastEffect.nextEffect = workInProgress
         // ! если нет последнего то и первого
         // ! последний добавиляеться по умолчанию
