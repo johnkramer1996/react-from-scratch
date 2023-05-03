@@ -1,5 +1,5 @@
 import { createFiberRoot } from './fiber'
-import { flushSyncCallbackQueue, sheduleWork } from './sheduleWork'
+import { flushSyncCallbackQueue, scheduleWork } from './scheduleWork'
 import { createUpdate, enqueueUpdate } from './update'
 
 const rootContainerInstance = { current: null }
@@ -40,5 +40,5 @@ function updateContainer(children, fiberRootNode) {
   }
 
   enqueueUpdate(fiberNode, update)
-  sheduleWork(fiberNode, expirationTime)
+  scheduleWork(fiberNode, expirationTime)
 }

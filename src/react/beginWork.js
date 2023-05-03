@@ -17,9 +17,6 @@ import { cloneUpdateQueue, processUpdateQueue } from './update'
 export function beginWork(current, workInProgress, renderExpirationTime) {
   var updateExpirationTime = workInProgress.expirationTime
 
-  if (current) {
-  }
-
   if (current !== null) {
     var oldProps = current.memoizedProps
     var newProps = workInProgress.pendingProps
@@ -342,7 +339,7 @@ function updateHostRoot(current, workInProgress, renderExpirationTime) {
   return workInProgress.child
 }
 
-function bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime) {
+export function bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime) {
   if (workInProgress.childExpirationTime < renderExpirationTime) return null
   return cloneChildFibers(current, workInProgress)
 }

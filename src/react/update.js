@@ -56,39 +56,13 @@ export function enqueueUpdate(fiber, update) {
 }
 
 export function processUpdateQueue(workInProgress, props, instance, renderExpirationTime) {
-  // This is always non-null on a ClassComponent or HostRoot
   var queue = workInProgress.updateQueue
-  hasForceUpdate = false
-
-  {
-    currentlyProcessingQueue = queue.shared
-  } // The last rebase update that is NOT part of the base state.
-
-  var baseQueue = queue.baseQueue // The last pending update that hasn't been processed yet.
+  var baseQueue = queue.baseQueue
   var pendingQueue = queue.shared.pending
 
   if (pendingQueue !== null) {
-    // We have new updates that haven't been processed yet.
-    // We'll add them to the base queue.
-    if (baseQueue !== null) {
-      // Merge the pending queue and the base queue.
-      var baseFirst = baseQueue.next
-      var pendingFirst = pendingQueue.next
-      baseQueue.next = pendingFirst
-      pendingQueue.next = baseFirst
-    }
-
     baseQueue = pendingQueue
     queue.shared.pending = null
-
-    var current = workInProgress.alternate
-    if (current !== null) {
-      var currentQueue = current.updateQueue
-
-      if (currentQueue !== null) {
-        currentQueue.baseQueue = pendingQueue
-      }
-    }
   }
 
   if (baseQueue !== null) {
@@ -106,38 +80,28 @@ export function processUpdateQueue(workInProgress, props, instance, renderExpira
 
         if (callback !== null) {
           workInProgress.effectTag |= Callback
-          var effects = queue.effects
-
-          if (effects === null) {
-            queue.effects = [update]
-          } else {
-            effects.push(update)
-          }
+          ;(queue.effects = effects || []).push(update)
         }
 
         update = update.next
 
         if (update === null || update === first) {
           pendingQueue = queue.shared.pending
+          if (pendingQueue === null) break
 
-          if (pendingQueue === null) {
-            break
-          } else {
-            update = baseQueue.next = pendingQueue.next
-            pendingQueue.next = first
-            queue.baseQueue = baseQueue = pendingQueue
-            queue.shared.pending = null
-          }
+          update = baseQueue.next = pendingQueue.next
+          pendingQueue.next = first
+          queue.baseQueue = baseQueue = pendingQueue
+          queue.shared.pending = null
         }
-      } while (true) // eslint-disable-line
+      } while (true)
     }
+
+    queue.baseState = newState
+    queue.baseQueue = null
 
     workInProgress.expirationTime = newExpirationTime
     workInProgress.memoizedState = newState
-  }
-
-  {
-    currentlyProcessingQueue = null
   }
 }
 
@@ -179,19 +143,8 @@ export function getStateFromUpdate(workInProgress, queue, update, prevState, nex
 
       if (typeof _payload === 'function') {
         // Updater export function
-        {
-          enterDisallowedContextReadInDEV()
-
-          if (workInProgress.mode & StrictMode) {
-            _payload.call(instance, prevState, nextProps)
-          }
-        }
 
         partialState = _payload.call(instance, prevState, nextProps)
-
-        {
-          exitDisallowedContextReadInDEV()
-        }
       } else {
         // Partial state object
         partialState = _payload

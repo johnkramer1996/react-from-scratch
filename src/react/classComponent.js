@@ -1,6 +1,14 @@
 import { shallowEqual } from './React'
+import { bailoutOnAlreadyFinishedWork } from './beginWork'
 import { reconcileChildren } from './reconcileChildren'
-import { cloneUpdateQueue, createUpdate, initializeUpdateQueue, processUpdateQueue } from './update'
+import { scheduleWork } from './scheduleWork'
+import {
+  cloneUpdateQueue,
+  createUpdate,
+  enqueueUpdate,
+  initializeUpdateQueue,
+  processUpdateQueue,
+} from './update'
 
 var emptyContextObject = {}
 

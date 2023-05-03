@@ -48,11 +48,38 @@ export const App = () => {
 }
 
 class ClassComponent extends Component {
-  componentWillMount() {
-    console.log('first')
+  constructor(props) {
+    super(props)
+    this.state = { isToggleOn: true }
+
+    this.handleClick = this.handleClick.bind(this)
   }
 
+  handleClick() {
+    this.setState((prevState) => {
+      return {
+        isToggleOn: !prevState.isToggleOn,
+      }
+    })
+  }
+
+  componentWillMount() {
+    console.log('componentWillMount')
+  }
+
+  componentWillReceiveProps(props) {
+    console.log('componentWillReceiveProps', props)
+  }
+
+  // shouldComponentUpdate() {}
+
   render() {
-    return createElement('div', null, 123)
+    console.log('update ClassCOmpnent')
+
+    return createElement(
+      'button',
+      { onClick: this.handleClick },
+      this.state.isToggleOn ? 'ON' : 'OFF',
+    )
   }
 }

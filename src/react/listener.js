@@ -1,6 +1,6 @@
 import { internalEventHandlersKey, internalInstanceKey } from './instance'
 import { registrationNameDependencies, simpleEventPluginEventTypes } from './registrationName'
-import { flushSyncCallbackQueue } from './sheduleWork'
+import { flushSyncCallbackQueue } from './scheduleWork'
 
 export function ensureListeningTo(rootContainerElement, registrationName) {
   legacyListenToEvent(registrationName, rootContainerElement)

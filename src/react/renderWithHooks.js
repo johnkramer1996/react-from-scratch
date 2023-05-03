@@ -1,4 +1,4 @@
-import { sheduleWork } from './sheduleWork'
+import { scheduleWork } from './scheduleWork'
 
 export function renderWithHooks(
   current,
@@ -377,7 +377,7 @@ function dispatchAction(fiber, queue, action) {
     }
   }
 
-  sheduleWork(fiber, expirationTime)
+  scheduleWork(fiber, expirationTime)
 }
 
 function pushEffect(tag, create, destroy, deps) {
