@@ -116,7 +116,6 @@ function commitMutationEffects() {
         nextEffect.effectTag &= ~Placement
 
         var _current = nextEffect.alternate
-        // ! nextEffect.effectTag &= Update ? Why is'nt
         commitWork(_current, nextEffect)
         break
       }

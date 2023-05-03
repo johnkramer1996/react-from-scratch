@@ -26,6 +26,7 @@ export function beginWork(current, workInProgress, renderExpirationTime) {
       return bailoutOnAlreadyFinishedWork(current, workInProgress, renderExpirationTime)
     }
   }
+
   workInProgress.expirationTime = NoWork
   switch (workInProgress.tag) {
     case IndeterminateComponent: {
@@ -143,7 +144,6 @@ function updateFunctionComponent(
 function updateClassComponent(current, workInProgress, Component, nextProps, renderExpirationTime) {
   var instance = workInProgress.stateNode
   var shouldUpdate
-  var hasContext = false
 
   if (instance === null) {
     if (current !== null) {
@@ -169,7 +169,7 @@ function updateClassComponent(current, workInProgress, Component, nextProps, ren
     workInProgress,
     Component,
     shouldUpdate,
-    hasContext,
+    false,
     renderExpirationTime,
   )
 

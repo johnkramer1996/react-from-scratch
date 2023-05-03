@@ -3,7 +3,9 @@ import { createElement, memo } from './react/React'
 import { Component } from './react/ReactComponent'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from './react/renderWithHooks'
 
-// ! todo prepareToReadContext
+// todo prepareToReadContext
+// todo updateClassComponent -> completeWork
+// todo commit root in the end expirienceTime
 
 export const App = () => {
   const [state, setState] = useState([

@@ -19,6 +19,7 @@ export function renderWithHooks(
       : HooksDispatcherOnMountInDEV
   var children = Component(props, secondArg)
 
+  debugger
   renderExpirationTime = NoWork
   currentlyRenderingFiber$1 = null
   currentHook = null

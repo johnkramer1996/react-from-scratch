@@ -96,14 +96,6 @@ function completeWork(current, workInProgress) {
   return null
 }
 
-function markUpdate(workInProgress) {
-  workInProgress.effectTag |= Update
-}
-
-function markRef$1(workInProgress) {
-  workInProgress.effectTag |= Ref
-}
-
 function updateHostComponent$1(current, workInProgress, type, newProps, rootContainerInstance) {
   var oldProps = current.memoizedProps
   if (oldProps === newProps) return
@@ -120,4 +112,12 @@ function updateHostComponent$1(current, workInProgress, type, newProps, rootCont
 
 function updateHostText$1(current, workInProgress, oldText, newText) {
   if (oldText !== newText) markUpdate(workInProgress)
+}
+
+function markUpdate(workInProgress) {
+  workInProgress.effectTag |= Update
+}
+
+function markRef$1(workInProgress) {
+  workInProgress.effectTag |= Ref
 }
